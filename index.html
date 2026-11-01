@@ -51,6 +51,8 @@ p{margin:0}
 .progress span{display:block;height:100%;background:var(--accent);transition:width .35s}
 .qhead{display:flex;justify-content:space-between;gap:8px}
 .opts{display:flex;flex-direction:column;gap:10px}
+.opts.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+.opts.grid .opt{padding:12px}
 .opt{display:flex;align-items:center;gap:14px;width:100%;text-align:left;font:500 16px var(--body);color:var(--ink);
   background:transparent;border:1.5px solid var(--line);border-radius:16px;padding:14px 16px;cursor:pointer;transition:border-color .15s,background .15s,transform .15s}
 .opt:hover{border-color:var(--accent);background:var(--soft)}
@@ -114,7 +116,7 @@ const QUESTIONS = [
   {id:"vibe", label:"The vibe check", q:m=>`How are we feeling about ${m==="dinner"?"tonight":m}?`, sub:"Set the scene. Your boyfriend is taking notes.",
    opts:[["date","✨","A proper date — I want to dress up",""],["casual","☕","Going out, nothing too fancy",""],["takeaway","🛋️","Takeaway on the couch",""],["home","🍳","Cook something together at home","You'll get a shopping list"],["any","💌","Surprise me — plan it for me",""]]},
   {id:"cuisine", label:"The passport check", q:()=>"Which country's food sounds best?", sub:"Just pick a direction. No menu decisions yet.", skipFor:"breakfast",
-   opts:[["italian","🇮🇹","Italy",""],["japanese","🇯🇵","Japan",""],["mexican","🇲🇽","Mexico",""],["thai","🇹🇭","Thailand",""],["vietnamese","🇻🇳","Vietnam",""],["chinese","🇨🇳","China","Dumplings"],["aussie","🇦🇺","Australia","Burgers, parmi, fish and chips"],["any","🌏","Surprise me",""]]}
+   opts:[["italian","🇮🇹","Italy",""],["japanese","🇯🇵","Japan",""],["mexican","🇲🇽","Mexico",""],["thai","🇹🇭","Thailand",""],["vietnamese","🇻🇳","Vietnam",""],["chinese","🇨🇳","China",""],["indian","🇮🇳","India",""],["korean","🇰🇷","Korea",""],["malaysian","🇸🇬","Singapore & Malaysia",""],["greek","🇬🇷","Greece",""],["aussie","🇦🇺","Australia",""],["any","🌏","Surprise me",""]]}
 ];
 const activeQs = () => QUESTIONS.filter(q=>q.skipFor!==answers.meal);
 
@@ -232,6 +234,96 @@ const DISHES = [
   recipe:{time:"25 min", buy:[["Dark chocolate","100 g"],["Strawberries","1 punnet"],["Vanilla ice cream","1 tub"]], pantry:"butter, 2 eggs, sugar, flour",
    steps:["Oven to 200°C, butter 2 mugs.","Melt chocolate with 60 g butter.","Whisk 2 eggs and 3 tbsp sugar, fold in chocolate and 2 tbsp flour.","Bake 10 min. Middle should wobble. Serve with berries and ice cream."]}},
 
+ {id:"butterchicken", meals:LD, flag:"🇮🇳", country:"India", e:"🍛", name:"Butter Chicken & Naan", persona:"The Curry Cuddler", cuisine:"indian", crav:["warm","cheesy"], size:3,
+  plan:"Creamy curry, garlic naan to mop it up, and rice on the side.",
+  places:[P("Indian Culture","323A Elizabeth St, North Hobart · also 93 Salamanca Pl","House favourite is the Kashmiri lamb rogan josh.",["casual","date","takeaway"],2),
+          P("Ganges Indian by Nature","Shop 12/42–44 Argyle St, Hobart","Butter chicken, biryani and paneer dishes.",["casual","takeaway"],2),
+          P("The Saffron Waterfront","15 Hunter St, Hobart","Tandoori plates and a big naan basket on the waterfront.",["date","casual"],3)],
+  recipe:{time:"35 min", buy:[["Chicken thigh","500 g"],["Butter chicken paste","1 jar"],["Tinned tomatoes","1 tin"],["Cream","300 ml"],["Garlic naan","1 pack"],["Coriander","1 bunch"]], pantry:"butter, basmati rice",
+   steps:["Start the rice.","Brown chicken pieces in butter.","Add paste, tomatoes and a splash of water. Simmer 15 min.","Stir in cream, warm the naan, top with coriander."]}},
+ {id:"chaat", meals:LD, flag:"🇮🇳", country:"India", e:"🥙", name:"Indian Street Snacks", persona:"The Snack Plate Hunter", cuisine:"indian", crav:["spicy","fresh","salty"], size:1,
+  plan:"Crunchy, tangy, spicy little bites. Pani puri, chaat and momos.",
+  places:[P("Chaat Corner","303 Elizabeth St, North Hobart","Pani puri and papdi chaat.",["casual","takeaway"],1),
+          P("Lajeez Indian Restaurant","213 Elizabeth St, Hobart","Momos, panipuri, chaat and goat curry.",["casual"],2),
+          P("Danphe","Unit 2/138 Collins St, Hobart","🇳🇵 Momos and thali plates.",["casual"],1)],
+  recipe:{time:"20 min", buy:[["Frozen samosas","1 box"],["Chickpeas","1 tin"],["Natural yoghurt","1 tub"],["Tamarind or mango chutney","1 jar"],["Red onion","1"],["Coriander","1 bunch"]], pantry:"chilli powder, cumin, lemon",
+   steps:["Bake the samosas.","Warm chickpeas with cumin and chilli.","Break samosas into bowls, add chickpeas and onion.","Drizzle yoghurt and chutney, top with coriander."]}},
+ {id:"biryani", meals:LD, flag:"🇮🇳", country:"India", e:"🍚", name:"Lamb Biryani", persona:"The Big Bowl Believer", cuisine:"indian", crav:["warm","spicy"], size:3,
+  plan:"Fragrant rice, tender meat, a cooling raita.",
+  places:[P("Magic Curries","41 Hampden Rd, Battery Point","Tandoor platters, mango chicken, lamb biryani.",["casual","takeaway"],2),
+          P("Tandoor & Curry House","101 Harrington St, Hobart","Chicken tikka and rogan josh.",["casual","takeaway"],2),
+          P("Annapurna","305 Elizabeth St, North Hobart · also Bellerive","Banquet menus, good for a sit-down night.",["date","casual"],3)],
+  recipe:{time:"50 min", buy:[["Diced lamb","500 g"],["Biryani paste","1 jar"],["Basmati rice","1½ cups"],["Natural yoghurt","1 tub"],["Onions","2"],["Cucumber and mint","1 each"]], pantry:"oil, salt",
+   steps:["Fry sliced onions until dark golden, set half aside.","Brown lamb with paste and half the yoghurt, simmer 25 min.","Par-cook rice 5 min, layer over the lamb, cover tightly 15 min on low.","Top with crispy onions. Mix cucumber, mint and yoghurt for raita."]}},
+ {id:"kfc", meals:LD, flag:"🇰🇷", country:"Korea", e:"🍗", name:"Korean Fried Chicken", persona:"The Sticky Fingers Fan", cuisine:"korean", crav:["salty","spicy"], size:2,
+  plan:"Double-fried crunchy chicken in sweet-spicy glaze. Beer optional.",
+  places:[P("Tasty Korea Chicken & Beer","Hobart","Korean fried chicken and beer.",["casual","takeaway"],2),
+          P("Devil's Kitchen Café","58 Sandy Bay Rd, Battery Point","Korean-run café with a Korean chicken burger.",["casual"],2),
+          P("Bear With Me","399 Macquarie St, South Hobart","Korean fried chicken burger with mountain views.",["casual"],2)],
+  recipe:{time:"40 min", buy:[["Chicken wings or thigh","600 g"],["Gochujang","1 tub"],["Cornflour","1 box"],["Honey","1"],["Spring onions","1 bunch"],["Sesame seeds","1"]], pantry:"soy sauce, garlic, frying oil",
+   steps:["Coat chicken in cornflour and salt.","Fry at 170°C for 6 min, rest, fry again 2 min.","Simmer 2 tbsp gochujang, 2 tbsp honey, 1 tbsp soy and garlic.","Toss chicken in glaze, top with sesame and spring onion."]}},
+ {id:"bibimbap", meals:LD, flag:"🇰🇷", country:"Korea", e:"🍲", name:"Bibimbap & Korean BBQ", persona:"The Mix-It-Up Type", cuisine:"korean", crav:["warm","fresh","spicy"], size:3,
+  plan:"Rice, veggies, beef and a fried egg. Mix it all up with chilli sauce.",
+  places:[P("Kalbi Korean Restaurant","Hobart","Korean BBQ and classics.",["casual","date"],3),
+          P("Tasty Korea Chicken & Beer","Hobart","For a casual Korean feed.",["casual","takeaway"],2)],
+  recipe:{time:"35 min", buy:[["Beef mince or thin steak","300 g"],["Gochujang","1 tub"],["Carrot","1"],["Baby spinach","1 bag"],["Bean sprouts","1 bag"],["Kimchi","1 jar"]], pantry:"rice, eggs, soy sauce, sesame oil",
+   steps:["Cook rice.","Fry beef with soy and garlic.","Quickly sauté each veg separately with sesame oil.","Top rice with everything and a fried egg. Mix with gochujang."]}},
+ {id:"souvlaki", meals:LD, flag:"🇬🇷", country:"Greece", e:"🥙", name:"Souvlaki & Greek Salad", persona:"The Mediterranean Soul", cuisine:"greek", crav:["fresh","salty"], size:2,
+  plan:"Charred meat, warm pita, tzatziki and a big Greek salad.",
+  places:[P("Urban Greek","Hobart","Modern Greek in an old warehouse, good for a sit-down night.",["date","casual"],3),
+          P("Mezethes Greek Taverna","Hobart","Taverna-style Greek and share plates.",["casual","date"],3)],
+  recipe:{time:"30 min", buy:[["Chicken thigh or lamb","500 g"],["Pita breads","4"],["Tzatziki","1 tub"],["Feta","150 g"],["Tomatoes, cucumber, red onion","1 each"],["Kalamata olives","1 jar"]], pantry:"oregano, lemon, olive oil",
+   steps:["Marinate meat cubes in lemon, oregano and oil.","Thread on skewers, grill or pan-fry 10 min.","Chop salad veg, top with feta and olives.","Warm pitas and load them up with tzatziki."]}},
+ {id:"padthai", meals:LD, flag:"🇹🇭", country:"Thailand", e:"🍜", name:"Pad Thai", persona:"The Noodle Twirler", cuisine:"thai", crav:["salty","sweet","warm"], size:2,
+  plan:"Sweet, sour, salty noodles with peanuts and lime.",
+  places:[P("All Thai","333 Elizabeth St, North Hobart · also Sandy Bay Rd","Thai street food by Thai chefs.",["casual","takeaway"],2),
+          P("Suzie Luck's Canteen","2 Salamanca Square, Hobart","Lively pan-Asian canteen with cocktails.",["casual","date"],3),
+          P("Thai Veggie Hutt","Shop 6, Bank Arcade, 68–70 Liverpool St, Hobart","All-vegetarian, cheap and quick.",["casual","takeaway"],1)],
+  recipe:{time:"25 min", buy:[["Flat rice noodles","200 g"],["Prawns or chicken","300 g"],["Pad thai sauce","1 jar"],["Bean sprouts","1 bag"],["Roasted peanuts","1 bag"],["Limes","2"]], pantry:"eggs, garlic, oil",
+   steps:["Soak noodles in hot water until soft.","Stir-fry prawns and garlic, push aside, scramble 2 eggs.","Add noodles and sauce, toss well.","Add sprouts, top with peanuts and lime."]}},
+ {id:"pho", meals:LD, flag:"🇻🇳", country:"Vietnam", e:"🍜", name:"Beef Pho", persona:"The Broth Whisperer", cuisine:"vietnamese", crav:["warm","fresh"], size:2,
+  plan:"Clear spiced broth, rice noodles, herbs and lime.",
+  places:[P("Cyclo Vietnamese Restaurant","Hobart","Beef pho and banh mi.",["casual","takeaway"],1),
+          P("Ja & Jon Banh Mi","Elizabeth Street Mall, Hobart","If you'd rather a roll than a bowl.",["takeaway"],1)],
+  recipe:{time:"30 min", buy:[["Beef stock","1 L"],["Thin-sliced beef (rump)","250 g"],["Rice stick noodles","200 g"],["Star anise and cinnamon","1 each"],["Bean sprouts","1 bag"],["Thai basil and lime","1 each"]], pantry:"fish sauce, onion, ginger",
+   steps:["Simmer stock with charred onion, ginger, star anise and cinnamon 20 min.","Season with fish sauce.","Cook noodles, put in bowls with raw beef on top.","Pour over boiling broth. Add sprouts, basil and lime."]}},
+ {id:"chickenrice", meals:LD, flag:"🇸🇬", country:"Singapore & Malaysia", e:"🍗", name:"Hainanese Chicken Rice", persona:"The Hawker Fan", cuisine:"malaysian", crav:["warm","fresh"], size:2,
+  plan:"Silky chicken, fragrant rice, chilli and ginger sauce.",
+  places:[P("Kopitiam Singapore Café","Hobart CBD","Hainanese chicken rice and fried hokkien mee.",["casual","takeaway"],1),
+          P("Sawak Café","Collins St, Hobart","🇲🇾 Nasi lemak, chicken rice and noodle soups.",["casual","takeaway"],1)],
+  recipe:{time:"45 min", buy:[["Chicken thighs (skin on)","4"],["Jasmine rice","1½ cups"],["Ginger","1 big knob"],["Spring onions","1 bunch"],["Cucumber","1"],["Sambal or chilli sauce","1"]], pantry:"garlic, soy sauce, sesame oil",
+   steps:["Poach chicken with ginger and spring onion 20 min. Keep the stock.","Fry garlic, add rice, cook it in the chicken stock.","Blitz ginger, spring onion and hot oil for the sauce.","Slice chicken, serve with rice, cucumber and sauces."]}},
+ {id:"laksa", meals:LD, flag:"🇲🇾", country:"Malaysia", e:"🍲", name:"Laksa", persona:"The Spicy Slurper", cuisine:"malaysian", crav:["spicy","warm"], size:3,
+  plan:"Rich coconut curry noodle soup with a chilli kick.",
+  places:[P("Sawak Café","Collins St, Hobart","Malaysian street-food staples and noodle soups.",["casual","takeaway"],1),
+          P("Kopitiam Singapore Café","Hobart CBD","Long-running Singaporean coffee shop.",["casual"],1)],
+  recipe:{time:"30 min", buy:[["Laksa paste","1 jar"],["Coconut milk","400 ml"],["Chicken stock","500 ml"],["Prawns or chicken","300 g"],["Hokkien or rice noodles","1 pack"],["Fried tofu puffs","1 pack"],["Bean sprouts","1 bag"]], pantry:"fish sauce, lime",
+   steps:["Fry 3 tbsp paste until fragrant.","Add stock and coconut milk, simmer 10 min.","Add prawns and tofu, cook 3 min.","Pour over noodles and sprouts. Squeeze in lime."]}},
+ {id:"antipasto", meals:LD, flag:"🇮🇹", country:"Italy", e:"🧀", name:"Wine Bar Share Plates", persona:"The Grazer", cuisine:"italian", crav:["cheesy","fresh","salty"], size:1,
+  plan:"Little plates, cheese, bread and a nice glass of something.",
+  places:[P("Sonny","120a Elizabeth St, Hobart","Tiny Italian wine bar, about 20 walk-in seats.",["date","casual"],3),
+          P("Ogee","374 Murray St, North Hobart","Daily-changing share plates and a big wine list.",["date","casual"],3)],
+  recipe:{time:"15 min", buy:[["Two cheeses (brie + aged cheddar)","1 each"],["Prosciutto or salami","100 g"],["Baguette","1"],["Grapes","1 bunch"],["Olives","1 tub"],["Crackers","1 box"]], pantry:"honey, olive oil",
+   steps:["Slice and toast the baguette with olive oil.","Arrange cheese, meat, grapes and olives on a board.","Drizzle honey over the brie.","Open the wine. You're done."]}},
+ {id:"seafood", meals:LD, flag:"🇦🇺", country:"Australia (Tassie seafood)", e:"🦪", name:"Oysters & Seafood Platter", persona:"The Ocean Lover", cuisine:"aussie", crav:["fresh","salty"], size:2,
+  plan:"Fresh Tassie oysters, prawns and a cold glass of white.",
+  places:[P("Mures","Victoria Dock, Hobart","Head to the Upper Deck for the sit-down seafood.",["date","casual"],3),
+          P("Flippers Cooked Seafood","Constitution Dock, Hobart","Cheap and cheerful on the dock.",["takeaway","casual"],1)],
+  recipe:{time:"15 min", buy:[["Fresh oysters","1 dozen"],["Cooked prawns","500 g"],["Smoked salmon","100 g"],["Lemons","2"],["Seafood sauce","1"],["Crusty bread","1"]], pantry:"butter, Tabasco",
+   steps:["Chill everything well.","Pile oysters, prawns and salmon on a platter over ice.","Add lemon wedges, sauce and buttered bread.","Peel prawns as you go."]}},
+ {id:"deli", meals:["lunch"], flag:"🇺🇸", country:"New York deli style", e:"🥪", name:"Big Deli Sandwich", persona:"The Lunch Legend", cuisine:"aussie", crav:["salty","cheesy"], size:2,
+  plan:"Stacked sandwich, pickles, crisps on the side.",
+  places:[P("Happy Larry Deli","Behind ANZ Bank, 59–63 Liverpool St, Hobart","Known for its sandwiches.",["casual","takeaway"],2),
+          P("Jackman & McRoss","57 Hampden Rd, Battery Point","Bakery lunches and pies.",["casual","takeaway"],1)],
+  recipe:{time:"10 min", buy:[["Sourdough or ciabatta","1 loaf"],["Pastrami or turkey","200 g"],["Swiss cheese","4 slices"],["Pickles","1 jar"],["Coleslaw mix","1 bag"],["Salt and vinegar chips","1 bag"]], pantry:"mustard, mayo",
+   steps:["Toast the bread.","Mix slaw with mayo and a bit of mustard.","Stack meat, cheese, slaw and pickles.","Squash, cut in half, serve with chips."]}},
+ {id:"burrito2", meals:LD, flag:"🇲🇽", country:"Mexico", e:"🌯", name:"Burrito Bowls", persona:"The Build-Your-Own Boss", cuisine:"mexican", crav:["warm","spicy","fresh"], size:3,
+  plan:"Rice, beans, chicken, salsa, guac. Everything you like in one bowl.",
+  places:[P("Grinners Dive Bar","132–134 Elizabeth St, Hobart","Burritos, tacos and margaritas.",["casual"],2),
+          P("Mother Mexico","11 Murray St, Hobart (In the Hanging Garden)","Relaxed Mexican under fairy lights.",["casual"],2)],
+  recipe:{time:"30 min", buy:[["Chicken thigh","400 g"],["Black beans","1 tin"],["Corn","1 tin"],["Salsa","1 jar"],["Avocado","1"],["Grated cheese","100 g"],["Lime","1"]], pantry:"rice, cumin, paprika",
+   steps:["Cook rice with a squeeze of lime.","Season chicken with cumin and paprika, pan-fry and slice.","Warm beans and corn.","Build bowls with salsa, avo and cheese."]}},
+
  /* ---- Breakfast ---- */
  {id:"bigbrekkie", meals:["breakfast"], flag:"🇦🇺", country:"Aussie café classic", e:"🍳", name:"Eggs Benny & Big Brekkie", persona:"The Brunch Boss", cuisine:"any", crav:["warm","salty"], size:3,
   plan:"Poached eggs, bacon, hollandaise and a big coffee.",
@@ -278,7 +370,50 @@ const DISHES = [
           P("Villino Coffee","30 Criterion St, Hobart","Freshly roasted coffee and pastries.",["takeaway","casual"],1),
           P("Daci & Daci Bakers","9–11 Murray St, Hobart","Classic patisserie.",["casual","takeaway"],2)],
   recipe:{time:"25 min", buy:[["Puff pastry sheets","2"],["Nutella or jam","1 jar"]], pantry:"egg, sugar, cinnamon",
-   steps:["Oven to 200°C.","Spread pastry with Nutella, roll up, slice into scrolls.","Brush with egg, sprinkle cinnamon sugar.","Bake 15 min. Make the coffee while they bake."]}}
+   steps:["Oven to 200°C.","Spread pastry with Nutella, roll up, slice into scrolls.","Brush with egg, sprinkle cinnamon sugar.","Bake 15 min. Make the coffee while they bake."]}},
+ {id:"frenchtoast", meals:["breakfast"], flag:"🇫🇷", country:"France", e:"🍞", name:"Brioche French Toast", persona:"The Brunch Romantic", cuisine:"any", crav:["sweet"], size:2,
+  plan:"Thick golden brioche, berries, maple and something creamy.",
+  places:[P("Farzi","13 Castray Esp, Battery Point","Famous French toast and panna cotta granola.",["casual","date"],2),
+          P("Erda","167A Harrington St, Hobart","Honey butter brioche toast.",["casual"],2),
+          P("Lēoht","46A Hampden Rd, Battery Point","Buckwheat banana pancakes.",["casual","date"],2)],
+  recipe:{time:"15 min", buy:[["Brioche loaf","1"],["Berries","1 punnet"],["Mascarpone or cream","1 tub"],["Maple syrup","1"]], pantry:"eggs, milk, butter, cinnamon",
+   steps:["Whisk 2 eggs, ½ cup milk and cinnamon.","Soak thick brioche slices for 10 seconds a side.","Fry in butter until golden.","Top with berries, mascarpone and maple."]}},
+ {id:"omurice", meals:["breakfast"], flag:"🇯🇵", country:"Japan", e:"🍳", name:"Omurice & Okonomiyaki", persona:"The Adventurous Breakfaster", cuisine:"any", crav:["warm","salty"], size:2,
+  plan:"A soft omelette over fried rice, or a savoury cabbage pancake.",
+  places:[P("Erda","167A Harrington St, Hobart","Known for omurice.",["casual"],2),
+          P("Plain Jane","73 Main Rd, Moonah","Okonomiyaki with cabbage and bacon.",["casual"],2)],
+  recipe:{time:"20 min", buy:[["Ham or bacon","100 g"],["Frozen peas","1 bag"],["Tomato sauce","1"],["Spring onions","1 bunch"]], pantry:"leftover or cooked rice, eggs, butter",
+   steps:["Fry chopped ham, peas and rice with a big squeeze of tomato sauce.","Whisk 3 eggs per person.","Cook a soft, barely set omelette in butter.","Slide it over the rice, add more sauce and spring onion."]}},
+ {id:"bakedeggs", meals:["breakfast"], flag:"🇮🇹", country:"Italy (Nonna style)", e:"🍅", name:"Baked Eggs", persona:"The Cosy Morning", cuisine:"any", crav:["warm","spicy"], size:2,
+  plan:"Eggs baked in a spiced tomato sauce, bread for dipping.",
+  places:[P("Plain Jane","73 Main Rd, Moonah","Nonna's baked eggs.",["casual"],2),
+          P("Hamlet","40 Molle St, Hobart","Fried eggplant with green chilli yoghurt.",["casual"],2)],
+  recipe:{time:"25 min", buy:[["Tinned tomatoes","1 tin"],["Chorizo or capsicum","1"],["Feta","100 g"],["Crusty bread","1 loaf"],["Parsley","1 bunch"]], pantry:"eggs, onion, garlic, paprika, chilli",
+   steps:["Fry onion, garlic and chorizo.","Add tomatoes, paprika and chilli, simmer 10 min.","Make 4 wells and crack in eggs.","Cover until whites set, top with feta and parsley."]}},
+ {id:"bagel", meals:["breakfast","lunch"], flag:"🇺🇸", country:"New York", e:"🥯", name:"Brekkie Bagels", persona:"The Bagel Believer", cuisine:"any", crav:["salty","fresh"], size:2,
+  plan:"Toasted bagel, cream cheese, smoked salmon or bacon and egg.",
+  places:[P("Westside Laundry","87 Goulburn St, Hobart","Known for brekkie bagels.",["casual","takeaway"],2),
+          P("Happy Larry Deli","Behind ANZ Bank, 59–63 Liverpool St, Hobart","Sandwich and deli spot.",["takeaway","casual"],2)],
+  recipe:{time:"10 min", buy:[["Bagels","4"],["Cream cheese","1 tub"],["Smoked salmon","100 g"],["Capers","1 jar"],["Red onion","1"]], pantry:"lemon, pepper",
+   steps:["Toast the bagels.","Spread thickly with cream cheese.","Top with salmon, thin onion and capers.","Lemon and cracked pepper to finish."]}},
+ {id:"crumpets", meals:["breakfast"], flag:"🇦🇺", country:"Australia", e:"🧈", name:"Crumpets & Coffee", persona:"The Simple Pleasures Type", cuisine:"any", crav:["sweet","salty","warm"], size:1,
+  plan:"Hot buttery crumpets and a flat white. Easy.",
+  places:[P("Marla Singer","4–36 Cambridge Rd, Bellerive","House-made crumpets with whipped Vegemite butter.",["casual"],2),
+          P("Island Espresso","171 Elizabeth St, Hobart","Hash brown fries with house relish.",["casual","takeaway"],1)],
+  recipe:{time:"5 min", buy:[["Crumpets","1 pack"],["Honey","1"],["Vegemite","1"]], pantry:"butter, coffee",
+   steps:["Toast the crumpets well.","Butter while hot so it melts into the holes.","Half with honey, half with Vegemite.","Make the coffee."]}},
+ {id:"cornfritters", meals:["breakfast","lunch"], flag:"🇦🇺", country:"Aussie café classic", e:"🌽", name:"Corn Fritters", persona:"The Crispy Veg Fan", cuisine:"any", crav:["fresh","salty","warm"], size:2,
+  plan:"Crispy corn fritters with avo, relish and a poached egg.",
+  places:[P("Criterion St Cafe","10 Criterion St, Hobart","Corn fritters with avocado smash.",["casual"],2),
+          P("The Lansdowne Cafe","68 Lansdowne Cres, West Hobart","Corn, jalapeño and smoked cheddar fritters.",["casual"],2)],
+  recipe:{time:"25 min", buy:[["Corn kernels","1 tin"],["Zucchini","1"],["Feta","100 g"],["Avocado","1"],["Tomato relish","1 jar"]], pantry:"self-raising flour, eggs, milk",
+   steps:["Mix corn, grated zucchini, feta, 2 eggs, ½ cup flour and a splash of milk.","Fry spoonfuls in oil, 3 min a side.","Serve with smashed avo and relish."]}},
+ {id:"granola", meals:["breakfast"], flag:"🇦🇺", country:"Aussie café classic", e:"🥣", name:"Granola & Yoghurt Bowls", persona:"The Light & Bright", cuisine:"any", crav:["fresh","sweet"], size:1,
+  plan:"Crunchy granola, thick yoghurt, fresh fruit.",
+  places:[P("Farzi","13 Castray Esp, Battery Point","Panna cotta granola.",["casual"],2),
+          P("Lēoht","46A Hampden Rd, Battery Point","Light, pretty breakfasts.",["casual","date"],2)],
+  recipe:{time:"5 min", buy:[["Granola","1 bag"],["Greek yoghurt","1 tub"],["Berries","1 punnet"],["Banana","2"]], pantry:"honey",
+   steps:["Yoghurt in bowls.","Top with granola, sliced banana and berries.","Drizzle honey."]}}
 ];
 
 const VIBE_TAB = {date:"Book a table", casual:"Head out", takeaway:"Order in", home:"Cook it"};
@@ -303,8 +438,17 @@ function score(d, a){
   return s;
 }
 function decide(){
-  ranked = DISHES.filter(d=>d.meals.includes(answers.meal))
-    .map(d=>({d, s:score(d,answers)})).sort((x,y)=>y.s-x.s).map(x=>x.d);
+  let recent=[]; try{ recent=JSON.parse(localStorage.getItem("fd-recent")||"[]"); }catch(e){}
+  const scored = DISHES.filter(d=>d.meals.includes(answers.meal))
+    .map(d=>({d, s:score(d,answers) + Math.random()*3 - (recent.includes(d.id)?3:0)}))
+    .sort((x,y)=>y.s-x.s);
+  // pick from the strongest few, weighted, so the same answers don't always land on one dish
+  const top = scored.slice(0,5), max = top[0].s;
+  const w = top.map(x=>Math.exp((x.s-max)/2)); let r = Math.random()*w.reduce((a,b)=>a+b,0), i=0;
+  while ((r-=w[i])>0 && i<top.length-1) i++;
+  const chosen = top[i];
+  ranked = [chosen.d, ...scored.filter(x=>x!==chosen).map(x=>x.d)];
+  try{ localStorage.setItem("fd-recent", JSON.stringify([chosen.d.id, ...recent.filter(x=>x!==chosen.d.id)].slice(0,6))); }catch(e){}
   current = 0;
   tab = answers.vibe==="home" ? "cook" : "out";
   render();
@@ -361,7 +505,7 @@ function renderQ(){
     <div class="eyebrow">Q0${n} · ${esc(Q.label)}</div>
     <h2>${esc(Q.q(answers.meal))}</h2>
     <p class="small">${esc(Q.sub)}</p>
-    <div class="opts">${Q.opts.map(([v,e,t,s])=>`
+    <div class="opts ${Q.opts.length>7?"grid":""}">${Q.opts.map(([v,e,t,s])=>`
       <button class="opt" data-v="${v}"><span class="e" aria-hidden="true">${e}</span><span class="t">${esc(t)}${s?`<small>${esc(s)}</small>`:""}</span></button>`).join("")}
     </div>
     <button class="linkbtn" id="back">← Back</button>
