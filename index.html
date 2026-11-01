@@ -1,0 +1,470 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style>
+<title>Hobart Dinner Decider</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Figtree:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one centred column, a quiz card that turns into a kitchen order docket at the end */
+:root{
+  --bg:#F4F1F7; --card:#FFFFFF; --ink:#1F1B36; --muted:#6B6582; --line:#E2DCEA;
+  --accent:#E2456F; --accent-ink:#FFFFFF; --sun:#F4B42A; --soft:#FBE7EE; --docket:#FFFDF6;
+  --display:"Bricolage Grotesque", "Arial Rounded MT Bold", system-ui, sans-serif;
+  --body:"Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono:"DM Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#16132A; --card:#211D3A; --ink:#F2EEF9; --muted:#A79FC2; --line:#352F55;
+  --accent:#FF6D93; --accent-ink:#1A1530; --sun:#FFC94A; --soft:#3A2440; --docket:#26213F; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#16132A; --card:#211D3A; --ink:#F2EEF9; --muted:#A79FC2; --line:#352F55;
+  --accent:#FF6D93; --accent-ink:#1A1530; --sun:#FFC94A; --soft:#3A2440; --docket:#26213F; color-scheme:dark }
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;letter-spacing:-.02em}
+h1{font-size:clamp(40px,11vw,64px);line-height:.95;font-weight:800}
+h1 em{font-style:normal;color:var(--accent)}
+h2{font-size:clamp(26px,7vw,34px);line-height:1.08;font-weight:800}
+h3{font-size:20px;font-weight:800}
+p{margin:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:24px 20px;display:flex;flex-direction:column;gap:18px}
+.btn{font:600 16px var(--body);border:0;border-radius:999px;padding:15px 22px;cursor:pointer;transition:transform .15s}
+.btn:active{transform:scale(.97)}
+.btn:focus-visible,.opt:focus-visible,.chip:focus-visible,.tab:focus-visible,.meal:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+.primary{background:var(--accent);color:var(--accent-ink)}
+.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.dodge{position:relative;transition:transform .25s cubic-bezier(.3,1.6,.5,1)}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.small{font-size:13px;color:var(--muted)}
+.hero{display:flex;flex-direction:column;gap:14px;padding-top:8px}
+.meals{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.meal{display:flex;flex-direction:column;align-items:center;gap:4px;padding:16px 8px;border-radius:18px;border:1.5px solid var(--line);
+  background:var(--card);color:var(--ink);font:600 16px var(--body);cursor:pointer;transition:border-color .15s,transform .15s}
+.meal:hover{border-color:var(--accent)}
+.meal:active{transform:scale(.97)}
+.meal .e{font-size:30px}
+.meal small{font:400 12px var(--mono);color:var(--muted)}
+.meal.now{border-color:var(--accent);background:var(--soft)}
+.progress{height:6px;background:var(--line);border-radius:6px;overflow:hidden}
+.progress span{display:block;height:100%;background:var(--accent);transition:width .35s}
+.qhead{display:flex;justify-content:space-between;gap:8px}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{display:flex;align-items:center;gap:14px;width:100%;text-align:left;font:500 16px var(--body);color:var(--ink);
+  background:transparent;border:1.5px solid var(--line);border-radius:16px;padding:14px 16px;cursor:pointer;transition:border-color .15s,background .15s,transform .15s}
+.opt:hover{border-color:var(--accent);background:var(--soft)}
+.opt:active{transform:scale(.98)}
+.opt .e{font-size:24px;width:30px;text-align:center;flex:none}
+.opt .t{display:flex;flex-direction:column;min-width:0}
+.opt .t small{color:var(--muted);font-size:13px;font-weight:400}
+.linkbtn{background:none;border:0;color:var(--muted);font:500 14px var(--body);cursor:pointer;padding:4px 0;align-self:flex-start}
+/* docket */
+.docket{background:var(--docket);border-radius:18px;padding:22px 20px 24px;display:flex;flex-direction:column;gap:16px;border:1px solid var(--line)}
+.dk-top{display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;color:var(--muted);border-bottom:1.5px dashed var(--line);padding-bottom:10px;gap:8px}
+.verdict{display:flex;gap:14px;align-items:center}
+.verdict .big{font-size:46px;flex:none}
+.persona{font-family:var(--mono);font-size:12px;color:var(--accent);text-transform:uppercase;letter-spacing:.1em}
+.flagline{font-size:14px;color:var(--muted)}
+.tabs{display:flex;gap:6px;background:var(--bg);padding:4px;border-radius:999px}
+.tab{flex:1;border:0;background:transparent;color:var(--muted);font:600 14px var(--body);padding:10px;border-radius:999px;cursor:pointer}
+.tab[aria-selected="true"]{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.place{display:flex;flex-direction:column;gap:4px;padding:14px 0;border-top:1px dashed var(--line)}
+.place:first-child{border-top:0;padding-top:4px}
+.phead{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.place .nm{font-family:var(--display);font-weight:800;font-size:19px;min-width:0}
+.place .addr{font-family:var(--mono);font-size:13px;color:var(--muted)}
+.place a{color:var(--accent);font-weight:600;font-size:14px;text-decoration:none}
+.place a:hover{text-decoration:underline}
+.price{display:flex;align-items:center;gap:6px;flex:none}
+.price .bars{display:flex;gap:3px}
+.price .bars i{display:block;width:10px;height:14px;border-radius:3px;background:var(--line)}
+.price .bars i.on{background:var(--sun)}
+.price .lbl{font-family:var(--mono);font-size:12px;color:var(--muted);width:40px;text-align:right}
+.tag{display:inline-block;font-family:var(--mono);font-size:11px;padding:2px 8px;border-radius:999px;background:var(--soft);color:var(--ink);margin-right:4px}
+.best{background:var(--sun);color:#1F1B36}
+.shop{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
+.shop li::marker{color:var(--accent)}
+.shop .q{color:var(--muted);font-size:14px}
+ol.steps{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px}
+ol.steps li::marker{font-family:var(--mono);color:var(--accent)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1.5px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:8px 14px;font:500 14px var(--body);cursor:pointer}
+.chip:hover{border-color:var(--accent)}
+.tell{background:var(--soft);border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:12px;text-align:center;align-items:center}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:999px;font-weight:600;font-size:14px;z-index:20}
+.fade{animation:fade .35s ease both}
+@keyframes fade{from{opacity:.001;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion: reduce){.fade{animation:none}.dodge,.progress span{transition:none}}
+.foot{text-align:center;font-size:12px;color:var(--muted)}
+</style>
+</head><body>
+
+<div class="wrap" id="app"></div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+/* ---------- Questions ---------- */
+const MEALS = {breakfast:["🍳","Breakfast"], lunch:["🥪","Lunch"], dinner:["🍝","Dinner"]};
+const QUESTIONS = [
+  {id:"hunger", label:"The hunger check", q:()=>"First things first… how hungry are you?", sub:"Be honest. This is a judgement-free zone.",
+   opts:[["starving","😩","I'm absolutely starving","Feed me now"],["meal","🍽️","Hungry enough for a proper meal",""],["peckish","🙂","A little hungry, not that much",""],["snack","🍿","I could honestly just snack",""]]},
+  {id:"craving", label:"The craving check", q:()=>"What sounds the BEST right now?", sub:"Your stomach has the floor.",
+   opts:[["salty","🍟","Salty and crispy",""],["cheesy","🧀","Cheesy and comforting",""],["fresh","🥑","Fresh and light",""],["warm","🍲","Warm, savoury and filling",""],["spicy","🌶️","Something with a kick",""],["sweet","🍰","Sweet and indulgent",""]]},
+  {id:"vibe", label:"The vibe check", q:m=>`How are we feeling about ${m==="dinner"?"tonight":m}?`, sub:"Set the scene. Your boyfriend is taking notes.",
+   opts:[["date","✨","A proper date — I want to dress up",""],["casual","☕","Going out, nothing too fancy",""],["takeaway","🛋️","Takeaway on the couch",""],["home","🍳","Cook something together at home","You'll get a shopping list"],["any","💌","Surprise me — plan it for me",""]]},
+  {id:"cuisine", label:"The passport check", q:()=>"Which country's food sounds best?", sub:"Just pick a direction. No menu decisions yet.", skipFor:"breakfast",
+   opts:[["italian","🇮🇹","Italy",""],["japanese","🇯🇵","Japan",""],["mexican","🇲🇽","Mexico",""],["thai","🇹🇭","Thailand",""],["vietnamese","🇻🇳","Vietnam",""],["chinese","🇨🇳","China","Dumplings"],["aussie","🇦🇺","Australia","Burgers, parmi, fish and chips"],["any","🌏","Surprise me",""]]}
+];
+const activeQs = () => QUESTIONS.filter(q=>q.skipFor!==answers.meal);
+
+/* ---------- Data ----------
+   price: 1 (cheap eats) to 5 (big splurge), relative across every place in the app */
+const P = (name, addr, note, vibes, price) => ({name, addr, note, vibes, price});
+const LD = ["lunch","dinner"];
+const DISHES = [
+ {id:"cacio", meals:LD, flag:"🇮🇹", country:"Italy", e:"🍝", name:"Cacio e Pepe", persona:"The Pasta Romantic", cuisine:"italian", crav:["cheesy","warm"], size:2,
+  plan:"Silky pecorino pasta, a glass of red and a slow meal.",
+  places:[P("Tesoro","Mövenpick Hotel, 28 Elizabeth St, Hobart","Order the cacio e pepe finished tableside in a pecorino wheel.",["date"],4),
+          P("Pitzi Pasta Bar","4 Victoria St, Hobart","Small and intimate, contemporary pastas and spritzes.",["date","casual"],3),
+          P("Da Angelo Ristorante","47 Hampden Rd, Battery Point","Generous old-school pasta, and they do takeaway.",["casual","takeaway"],2)],
+  recipe:{time:"20 min", buy:[["Spaghetti","250 g"],["Pecorino romano","80 g"],["Parmesan","40 g"],["Rocket","1 bag"],["Lemon","1"],["Crusty bread","1 loaf"]], pantry:"butter, black pepper, salt",
+   steps:["Grate both cheeses into a bowl.","Boil pasta in a small pot of salted water. Keep a mug of the water.","Toast cracked pepper in butter, add a ladle of pasta water.","Off the heat, toss in pasta and cheese with splashes of water until glossy.","Serve with lemony rocket."]}},
+ {id:"pizza", meals:LD, flag:"🇮🇹", country:"Italy", e:"🍕", name:"Pizza Party for Two", persona:"The Cheese Pull Enthusiast", cuisine:"italian", crav:["cheesy","salty"], size:2,
+  plan:"Hot pizza, extra cheese, no plates required.",
+  places:[P("Ti Ama","13 Castray Esp, Battery Point","Bright pink pizzeria with a disco-ball oven.",["casual","date"],2),
+          P("Da Angelo Ristorante","47 Hampden Rd, Battery Point","Big pizzas, homemade gelato, takeaway available.",["casual","takeaway"],2),
+          P("Cultura Espresso Bar & Restaurant","123 Liverpool St, Hobart","Pizza and focaccia in the evening dining room.",["casual"],3)],
+  recipe:{time:"35 min", buy:[["Pizza dough balls","2"],["Passata","1 jar"],["Fresh mozzarella","250 g"],["Salami or pepperoni","100 g"],["Fresh basil","1 bunch"]], pantry:"olive oil, flour, oregano",
+   steps:["Heat oven as hot as it goes with a tray inside.","Stretch the dough thin on a floured bench.","Top with passata, oregano, mozzarella and salami.","Bake 8–10 minutes on the hot tray.","Finish with basil and a drizzle of oil."]}},
+ {id:"meatballs", meals:LD, flag:"🇮🇹", country:"Italy", e:"🍅", name:"Spaghetti & Meatballs", persona:"The Comfort Classicist", cuisine:"italian", crav:["warm","cheesy"], size:3,
+  plan:"A big bowl of red sauce and meatballs. Lady and the Tramp optional.",
+  places:[P("Don Camillo","5 Magnet Crt, Sandy Bay","Long-running institution with an old-school feel.",["casual","date"],3),
+          P("Peppina","2B Salamanca Pl, Hobart (inside The Tasman)","Light-filled, feast-style dining and fresh pasta.",["date"],4),
+          P("Maldini","47 Salamanca Pl, Hobart","Classic Italian in a sandstone warehouse.",["casual","date"],3)],
+  recipe:{time:"45 min", buy:[["Beef and pork mince","500 g"],["Spaghetti","250 g"],["Passata","700 ml"],["Onion","1"],["Garlic","1 bulb"],["Parmesan","60 g"],["Basil","1 bunch"]], pantry:"egg, breadcrumbs, olive oil",
+   steps:["Mix mince, egg, breadcrumbs, half the parmesan and garlic. Roll 16 balls.","Brown them in oil, then lift out.","Soften onion, add passata, return meatballs, simmer 20 min.","Toss with spaghetti, top with basil and parmesan."]}},
+ {id:"sushidate", meals:["dinner"], flag:"🇯🇵", country:"Japan", e:"🍣", name:"Sushi Date Night", persona:"The Fancy Foodie", cuisine:"japanese", crav:["fresh"], size:2,
+  plan:"Beautiful fresh fish, a cute outfit and something to sip.",
+  places:[P("Omotenashi","Unit 4/160 Elizabeth St, Hobart","Ten seats, 16-course kaiseki. A big splurge. Book well ahead.",["date"],5),
+          P("Yamashita","31 Criterion St, Hobart","Laneway spot mixing Japanese dishes with Tasmanian produce.",["date","casual"],3),
+          P("Suminato","Shop 2B, 48 King St, Sandy Bay","Cosy, with sushi, Japanese tapas and a banquet option.",["casual","date"],3)],
+  recipe:{time:"40 min", buy:[["Sashimi-grade salmon","300 g"],["Sushi rice","1½ cups"],["Nori sheets","1 pack"],["Avocado","1"],["Cucumber","1"],["Kewpie mayo","1"]], pantry:"rice vinegar, sugar, soy sauce",
+   steps:["Cook rice, stir through 3 tbsp vinegar and 1 tbsp sugar, cool.","Slice salmon, avocado and cucumber into strips.","Halve the nori and roll hand-rolls at the table.","Dip in soy and eat while the nori is crisp."]}},
+ {id:"ramen", meals:LD, flag:"🇯🇵", country:"Japan", e:"🍜", name:"Big Bowl of Ramen", persona:"The Slurp Professional", cuisine:"japanese", crav:["warm","salty"], size:3,
+  plan:"Steaming broth, springy noodles, a jammy egg. Perfect for a cold Hobart day.",
+  places:[P("Ranita Ramen","206 Liverpool St, Hobart","Nine seats, homemade noodles. Weekday lunch only.",["casual"],2),
+          P("Bar Wa Izakaya","216–218 Elizabeth St, Hobart","Ramen on the lunch menu, share plates and cocktails at night.",["casual","date"],3),
+          P("Yamashita","31 Criterion St, Hobart","If ramen is off, go for the hot pot.",["casual","date"],3)],
+  recipe:{time:"30 min", buy:[["Fresh ramen noodles","2 serves"],["Chicken stock","1 L"],["White miso","1 tub"],["Chicken thigh","300 g"],["Bok choy","1 bunch"],["Spring onions","1 bunch"]], pantry:"eggs, soy sauce, sesame oil, garlic",
+   steps:["Boil eggs 6½ min, cool and peel.","Pan-fry the chicken until crisp, slice.","Simmer stock with garlic 10 min, whisk in 3 tbsp miso.","Cook noodles and bok choy, top with everything."]}},
+ {id:"poke", meals:LD, flag:"🇯🇵", country:"Japan", e:"🥗", name:"Sushi Train & Poke", persona:"The Fresh Grazer", cuisine:"japanese", crav:["fresh"], size:1,
+  plan:"Light, fresh, grab-what-you-like eating.",
+  places:[P("Sush Track","Franklin Wharf, Hobart","Waterfront revolving sushi train with 100+ items.",["casual","takeaway"],2),
+          P("Kosaten","17 Castray Esp, Battery Point","Bullet-train delivery to your seat, takeaway boxes too.",["casual","takeaway"],2)],
+  recipe:{time:"25 min", buy:[["Sashimi-grade salmon","250 g"],["Avocado","1"],["Frozen edamame","1 bag"],["Cucumber","1"],["Sriracha mayo","1"]], pantry:"rice, soy sauce, sesame oil",
+   steps:["Cook rice.","Cube salmon, toss with soy and sesame oil.","Thaw edamame in hot water, slice avo and cucumber.","Build bowls and add sriracha mayo."]}},
+ {id:"karaage", meals:LD, flag:"🇯🇵", country:"Japan", e:"🍗", name:"Karaage & Rice", persona:"The Crunch Seeker", cuisine:"japanese", crav:["salty"], size:2,
+  plan:"Crispy Japanese fried chicken with Kewpie and lemon.",
+  places:[P("Shokuji Japanese Restaurant","2/29 Main Rd, Claremont","No-frills, generous karaage and tempura.",["casual","takeaway"],2),
+          P("Bar Wa Izakaya","216–218 Elizabeth St, Hobart","Izakaya snacks and cocktails.",["casual","date"],3)],
+  recipe:{time:"40 min", buy:[["Chicken thigh","500 g"],["Cornflour","1 box"],["Ginger","1 knob"],["Cabbage","¼"],["Lemon","1"],["Kewpie mayo","1"]], pantry:"soy sauce, rice, garlic, frying oil",
+   steps:["Marinate chicken pieces in soy, ginger and garlic 20 min.","Cook rice, shred cabbage.","Coat chicken in cornflour, fry at 170°C for 4 min.","Rest 2 min, fry again 1 min. Serve with lemon and Kewpie."]}},
+ {id:"tacos", meals:LD, flag:"🇲🇽", country:"Mexico", e:"🌮", name:"Taco Night", persona:"The Fiesta Starter", cuisine:"mexican", crav:["fresh","spicy","salty"], size:2,
+  plan:"Tacos, lime, something spicy, and a margarita.",
+  places:[P("Pancho Villa","Cnr Elizabeth & Pitt St, North Hobart","Get the pork cheek tacos and churros.",["casual","date"],3),
+          P("Mother Mexico","11 Murray St, Hobart (In the Hanging Garden)","Relaxed tacos under fairy lights.",["casual"],2),
+          P("Grinners Dive Bar","132–134 Elizabeth St, Hobart","Lots of tacos and strong margaritas.",["casual"],2)],
+  recipe:{time:"30 min", buy:[["Flathead fillets","400 g"],["Small tortillas","8"],["Red cabbage","¼"],["Limes","3"],["Avocados","2"],["Coriander","1 bunch"],["Sour cream","1 tub"]], pantry:"paprika, cumin, hot sauce",
+   steps:["Rub fish with paprika, cumin and salt.","Mash avo with lime. Shred cabbage with lime and salt.","Pan-fry fish 2–3 min a side, flake.","Warm tortillas and build your tacos."]}},
+ {id:"nachos", meals:LD, flag:"🇲🇽", country:"Mexico", e:"🧀", name:"Loaded Nachos", persona:"The Melty Cheese Devotee", cuisine:"mexican", crav:["cheesy","salty","spicy"], size:3,
+  plan:"A tray of nachos with way too much cheese. Share (or don't).",
+  places:[P("Grinners Dive Bar","132–134 Elizabeth St, Hobart","Nachos, burritos and margaritas.",["casual"],2),
+          P("Casa de Amor","11 Morrison St, Hobart","Colourful, with frozen margaritas in heaps of flavours.",["casual","date"],2),
+          P("Pancho Villa","Cnr Elizabeth & Pitt St, North Hobart","Skulls, neon and a big menu.",["casual"],3)],
+  recipe:{time:"30 min", buy:[["Beef mince","400 g"],["Corn chips","1 big bag"],["Grated cheese","250 g"],["Black beans","1 tin"],["Taco seasoning","1"],["Avocado","1"],["Sour cream","1 tub"]], pantry:"jalapeños, lime",
+   steps:["Brown mince with seasoning and beans.","Layer chips, mince and cheese twice.","Bake at 200°C for 10 min.","Top with avo, sour cream and jalapeños."]}},
+ {id:"curry", meals:LD, flag:"🇹🇭", country:"Thailand", e:"🍛", name:"Thai Green Curry", persona:"The Spice Queen", cuisine:"thai", crav:["warm","spicy"], size:3,
+  plan:"Fragrant, creamy curry with jasmine rice.",
+  places:[P("Monsoon Thai Fusion","46 Hampden Rd, Battery Point","Upmarket Thai in a historic cottage.",["date"],4),
+          P("All Thai","333 Elizabeth St, North Hobart · also Sandy Bay Rd","Street food and curries by Thai chefs.",["casual","takeaway"],2),
+          P("Vanidol's South Hobart","361a Macquarie St, South Hobart","Home-style Thai. Try the larb.",["casual"],2)],
+  recipe:{time:"30 min", buy:[["Chicken thigh","400 g"],["Green curry paste","1 jar"],["Coconut milk","400 ml"],["Green beans","150 g"],["Thai basil","1 bunch"],["Lime","1"]], pantry:"fish sauce, sugar, jasmine rice",
+   steps:["Start the rice.","Fry 3 tbsp paste 1 min, add coconut milk.","Simmer sliced chicken 8 min, beans 4 min more.","Season with fish sauce, sugar and lime. Add basil."]}},
+ {id:"vietnamese", meals:LD, flag:"🇻🇳", country:"Vietnam", e:"🥢", name:"Banh Mi & Rice Paper Rolls", persona:"The Fresh Flavour Fan", cuisine:"vietnamese", crav:["fresh","spicy"], size:1,
+  plan:"Light but full of flavour. Herbs, crunch and chilli.",
+  places:[P("Ja & Jon Banh Mi","Elizabeth Street Mall, Hobart","Hefty banh mi. The crispy pork is the favourite.",["takeaway","casual"],1),
+          P("Cyclo Vietnamese Restaurant","Hobart","Banh mi, beef pho and cheap rice paper rolls.",["casual","takeaway"],1)],
+  recipe:{time:"35 min", buy:[["Cooked prawns","300 g"],["Rice paper","1 pack"],["Rice vermicelli","1 pack"],["Lettuce","1"],["Mint and coriander","1 bunch each"],["Carrot and cucumber","1 each"],["Hoisin sauce","1"]], pantry:"peanut butter, fish sauce, lime",
+   steps:["Soak noodles 5 min, drain.","Cut veg into thin sticks, halve prawns.","Mix hoisin with peanut butter and hot water for dipping.","Dip rice paper 3 sec, fill and roll at the table."]}},
+ {id:"dumplings", meals:LD, flag:"🇨🇳", country:"China", e:"🥟", name:"Dumpling Feast", persona:"The Little Parcels Lover", cuisine:"chinese", crav:["salty","warm"], size:2,
+  plan:"Crispy-bottomed potstickers and chilli oil.",
+  places:[P("Pot Sticker Dumpling House","Hobart CBD and Moonah","Pan-fried and soup dumplings at budget prices.",["casual","takeaway"],1),
+          P("Danphe Nepalese and Indian Food","Hobart","🇳🇵 Nepalese momos, small and cheap.",["casual"],1)],
+  recipe:{time:"50 min", buy:[["Pork mince","300 g"],["Dumpling wrappers","1 pack"],["Wombok","¼"],["Spring onions","1 bunch"],["Ginger","1 knob"],["Chilli oil","1 jar"]], pantry:"soy sauce, sesame oil, vinegar",
+   steps:["Mix pork, chopped wombok, ginger, spring onion and soy.","Fill and fold the wrappers.","Fry 2 min, add ⅓ cup water, cover and steam 5 min.","Dip in vinegar and chilli oil."]}},
+ {id:"fishchips", meals:LD, flag:"🇦🇺", country:"Australia", e:"🐟", name:"Fish & Chips on the Waterfront", persona:"The Seaside Classic", cuisine:"aussie", crav:["salty"], size:2,
+  plan:"Flathead and chips by the water at Constitution Dock.",
+  places:[P("Flippers Cooked Seafood","Constitution Dock, Hobart","The floating fish punt. Eat on the dock and fend off seagulls.",["takeaway","casual"],1),
+          P("Mures","Victoria Dock, Hobart","Casual downstairs, sit-down Upper Deck for a nicer meal.",["casual","date"],3),
+          P("Fish Frenzy","Elizabeth St Pier, Hobart","Fish and chips with harbour views.",["casual"],2)],
+  recipe:{time:"40 min", buy:[["Flathead fillets","400 g"],["Potatoes","4"],["Self-raising flour","1 cup"],["Cold beer","1 can"],["Lemon","1"],["Tartare sauce","1 jar"]], pantry:"frying oil, salt, vinegar",
+   steps:["Oven-bake thick chips at 220°C for 35 min.","Whisk flour and cold beer into a thick batter.","Batter fish, fry at 180°C for 3–4 min.","Salt straight away, serve with lemon and tartare."]}},
+ {id:"burger", meals:LD, flag:"🇦🇺", country:"Australia", e:"🍔", name:"Burgers & Shakes", persona:"The Double Patty Dreamer", cuisine:"aussie", crav:["cheesy","salty","warm"], size:3,
+  plan:"A messy, two-hands burger and maybe a shake.",
+  places:[P("Billy's Burgers and Bar","Elizabeth Street Pier, Hobart","Waterfront. The Beast burger is huge.",["casual"],2),
+          P("The Standard","177 Liverpool St, Hobart","American-style burgers with a rooftop bar.",["casual"],2),
+          P("Boss Burger Co","319 Elizabeth St, North Hobart","Classic fried chicken burger.",["casual","takeaway"],2)],
+  recipe:{time:"25 min", buy:[["Beef mince","400 g"],["Brioche buns","4"],["Cheese slices","1 pack"],["Onion","1"],["Lettuce and tomato","1 each"],["Oven fries","1 bag"]], pantry:"pickles, mayo, mustard, sauce",
+   steps:["Fries in the oven.","Roll mince into 4 balls, toast the buns.","Smash flat in a hot pan, 2 min, flip, add cheese.","Stack two per bun with the fixings."]}},
+ {id:"parmi", meals:LD, flag:"🇦🇺", country:"Australia", e:"🍺", name:"Pub Parmi", persona:"The Pub Regular", cuisine:"aussie", crav:["cheesy","warm"], size:3,
+  plan:"A chicken parmi the size of the plate, chips and a cold one.",
+  places:[P("The Whaler","Salamanca Pl, Battery Point","Historic pub from 1829.",["casual"],2),
+          P("Preachers","5 Knopwood St, Hobart","Old-style pub with a beer garden.",["casual"],2),
+          P("The Winston","381 Elizabeth St, North Hobart","Dive-bar pub with big serves.",["casual"],2)],
+  recipe:{time:"45 min", buy:[["Chicken breasts","2"],["Panko crumbs","1 bag"],["Napoli sauce","1 jar"],["Mozzarella","150 g"],["Ham","4 slices"],["Oven chips","1 bag"]], pantry:"flour, eggs, oil",
+   steps:["Chips in the oven.","Butterfly the chicken, then flour, egg and panko.","Shallow fry 3 min a side.","Top with ham, sauce and cheese, grill until bubbling."]}},
+ {id:"dessert", meals:LD, flag:"🇫🇷", country:"France", e:"🍰", name:"Dessert for Dinner", persona:"The Sweet Tooth", cuisine:"any", crav:["sweet"], size:1,
+  plan:"Skip the mains. Go straight to the good part.",
+  places:[P("Honey Badger Dessert Cafe","Hobart","Dedicated dessert café.",["casual","date"],2),
+          P("Daci & Daci Bakers","9–11 Murray St, Hobart","Patisserie cakes, plus sparkling wine.",["takeaway","casual"],2),
+          P("Da Angelo Ristorante","47 Hampden Rd, Battery Point","Homemade gelato.",["casual"],2)],
+  recipe:{time:"25 min", buy:[["Dark chocolate","100 g"],["Strawberries","1 punnet"],["Vanilla ice cream","1 tub"]], pantry:"butter, 2 eggs, sugar, flour",
+   steps:["Oven to 200°C, butter 2 mugs.","Melt chocolate with 60 g butter.","Whisk 2 eggs and 3 tbsp sugar, fold in chocolate and 2 tbsp flour.","Bake 10 min. Middle should wobble. Serve with berries and ice cream."]}},
+
+ /* ---- Breakfast ---- */
+ {id:"bigbrekkie", meals:["breakfast"], flag:"🇦🇺", country:"Aussie café classic", e:"🍳", name:"Eggs Benny & Big Brekkie", persona:"The Brunch Boss", cuisine:"any", crav:["warm","salty"], size:3,
+  plan:"Poached eggs, bacon, hollandaise and a big coffee.",
+  places:[P("Room For A Pony","338 Elizabeth St, North Hobart","All-day brunch in a big courtyard.",["casual","date"],2),
+          P("Ginger Brown","464 Macquarie St, South Hobart","Classic brunch staples, very pretty plates.",["casual","date"],2),
+          P("Machine Laundry Cafe","12 Salamanca Square, Battery Point","Inventive menu and generous coffees.",["casual"],2)],
+  recipe:{time:"20 min", buy:[["English muffins","4"],["Bacon","200 g"],["Hollandaise (jar)","1"],["Baby spinach","1 bag"]], pantry:"eggs, vinegar, butter",
+   steps:["Fry the bacon and wilt the spinach.","Poach eggs in simmering water with a splash of vinegar, 3 min.","Toast and butter the muffins.","Stack, then spoon over warm hollandaise."]}},
+ {id:"avo", meals:["breakfast"], flag:"🇦🇺", country:"Aussie café classic", e:"🥑", name:"Smashed Avo & Fritters", persona:"The Fresh Start", cuisine:"any", crav:["fresh"], size:2,
+  plan:"Smashed avo, feta, lemon and something green.",
+  places:[P("The Lansdowne Cafe","68 Lansdowne Cres, West Hobart","Known for corn, jalapeño and smoked cheddar fritters.",["casual"],2),
+          P("Pigeon Hole","93 Goulburn St, West Hobart","Produce from its own farm. Good vegan options.",["casual","date"],2),
+          P("Straight Up Coffee and Food","202 Liverpool St, Hobart","Vegetarian and gluten-free menu.",["casual"],2)],
+  recipe:{time:"15 min", buy:[["Sourdough","1 loaf"],["Avocados","2"],["Feta","100 g"],["Lemon","1"],["Cherry tomatoes","1 punnet"]], pantry:"eggs, chilli flakes, olive oil",
+   steps:["Toast thick slices of sourdough.","Smash avo with lemon, salt and chilli.","Pile on toast, crumble over feta.","Add halved tomatoes and a poached egg."]}},
+ {id:"baconroll", meals:["breakfast"], flag:"🇦🇺", country:"Aussie café classic", e:"🥓", name:"Bacon & Egg Roll", persona:"The Grab-and-Go Legend", cuisine:"any", crav:["salty","warm"], size:2,
+  plan:"Bacon, egg, sauce, soft roll, coffee. Done.",
+  places:[P("Born In Brunswick","410 Elizabeth St, North Hobart","Their bacon and egg roll is the move.",["casual","takeaway"],1),
+          P("Jackman & McRoss","57 Hampden Rd, Battery Point","Bakery with pies, danishes and sourdough.",["casual","takeaway"],1),
+          P("Villino Coffee","30 Criterion St, Hobart","Great coffee and pastries.",["takeaway"],1)],
+  recipe:{time:"15 min", buy:[["Soft white rolls","2"],["Bacon","200 g"],["Cheese slices","2"],["BBQ or tomato sauce","1"]], pantry:"eggs, butter",
+   steps:["Fry the bacon until crisp.","Fry eggs in the bacon fat.","Butter and toast the rolls.","Stack bacon, egg, cheese and sauce."]}},
+ {id:"toastie", meals:["breakfast"], flag:"🇫🇷", country:"France (croque monsieur)", e:"🥪", name:"Cheesy French Toast", persona:"The Cheese for Breakfast Type", cuisine:"any", crav:["cheesy"], size:2,
+  plan:"Melty, golden, cheesy toast. Breakfast's best-kept secret.",
+  places:[P("Criterion St Cafe","10 Criterion St, Hobart","Three-cheese French toast with pancetta.",["casual"],2),
+          P("Dandy Lane Food & Specialty Coffee","10/138 Collins St, Hobart","Brunch with twists, like mac and cheese croquettes.",["casual"],2)],
+  recipe:{time:"15 min", buy:[["Thick white bread","4 slices"],["Gruyère or tasty cheese","150 g"],["Shaved ham","100 g"],["Dijon mustard","1"]], pantry:"eggs, milk, butter",
+   steps:["Make sandwiches with mustard, ham and half the cheese.","Dip both sides in egg whisked with milk.","Fry in butter until golden.","Top with remaining cheese and grill to melt."]}},
+ {id:"burrito", meals:["breakfast"], flag:"🇲🇽", country:"Mexico", e:"🌯", name:"Breakfast Burritos", persona:"The Spicy Morning Person", cuisine:"mexican", crav:["spicy","warm"], size:3,
+  plan:"Eggs, chorizo, cheese and hot sauce wrapped up tight.",
+  places:[P("Pancho Villa","Cnr Elizabeth & Pitt St, North Hobart","Bottomless brunch on weekends. Book ahead.",["casual","date"],3)],
+  recipe:{time:"20 min", buy:[["Large tortillas","2"],["Chorizo","1"],["Grated cheese","100 g"],["Avocado","1"],["Hot sauce","1"]], pantry:"eggs, butter",
+   steps:["Fry diced chorizo until crisp.","Scramble 4 eggs softly in the chorizo pan.","Warm tortillas, fill with egg, chorizo, cheese, avo and hot sauce.","Roll tight and toast seam-side down."]}},
+ {id:"pancakes", meals:["breakfast"], flag:"🇦🇺", country:"Aussie café classic", e:"🥞", name:"Pancakes & Berries", persona:"The Sugar Rush", cuisine:"any", crav:["sweet"], size:2,
+  plan:"Fluffy stack, berries, maple and cream.",
+  places:[P("Berta","119 Liverpool St, Hobart","Seasonal European-style brunch.",["date","casual"],3),
+          P("Daci & Daci Bakers","9–11 Murray St, Hobart","Pastries, cakes and coffee.",["casual","takeaway"],2),
+          P("Jackman & McRoss","57 Hampden Rd, Battery Point","Seasonal fruit danishes.",["casual","takeaway"],1)],
+  recipe:{time:"20 min", buy:[["Mixed berries","1 punnet"],["Maple syrup","1"],["Thickened cream","1"]], pantry:"self-raising flour, milk, egg, sugar, butter",
+   steps:["Whisk 1 cup flour, 1 cup milk, 1 egg and 1 tbsp sugar.","Cook ¼ cups of batter in butter until bubbles show, then flip.","Stack with berries, maple and cream."]}},
+ {id:"pastry", meals:["breakfast"], flag:"🇫🇷", country:"France", e:"🥐", name:"Coffee & Pastry", persona:"The Light Nibbler", cuisine:"any", crav:["sweet","salty","fresh"], size:1,
+  plan:"A good coffee and a flaky pastry. Low effort, high joy.",
+  places:[P("Jackman & McRoss","57 Hampden Rd, Battery Point","Sourdough, danishes and pies.",["casual","takeaway"],1),
+          P("Villino Coffee","30 Criterion St, Hobart","Freshly roasted coffee and pastries.",["takeaway","casual"],1),
+          P("Daci & Daci Bakers","9–11 Murray St, Hobart","Classic patisserie.",["casual","takeaway"],2)],
+  recipe:{time:"25 min", buy:[["Puff pastry sheets","2"],["Nutella or jam","1 jar"]], pantry:"egg, sugar, cinnamon",
+   steps:["Oven to 200°C.","Spread pastry with Nutella, roll up, slice into scrolls.","Brush with egg, sprinkle cinnamon sugar.","Bake 15 min. Make the coffee while they bake."]}}
+];
+
+const VIBE_TAB = {date:"Book a table", casual:"Head out", takeaway:"Order in", home:"Cook it"};
+const PRICE_LBL = ["","$","$$","$$$","$$$$","$$$$$"];
+
+/* ---------- State ---------- */
+let answers = {}, step = -1, ranked = [], current = 0, tab = "out", dodges = 0;
+const app = document.getElementById("app");
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const pick = arr => arr[Math.floor(Math.random()*arr.length)];
+
+/* ---------- Scoring ---------- */
+function score(d, a){
+  let s = Math.random()*1.5;
+  if (a.cuisine && a.cuisine!=="any"){ if (d.cuisine===a.cuisine) s+=6; else if (d.cuisine!=="any") s-=3; }
+  const sweetDish = d.crav[0]==="sweet";
+  if (a.craving==="sweet") s += d.crav.includes("sweet") ? 10 : -4;
+  else { if (sweetDish) s-=6; if (d.crav.includes(a.craving)) s+=5; }
+  const target = {starving:3, meal:2.5, peckish:1.5, snack:1}[a.hunger] ?? 2;
+  s -= Math.abs(d.size-target)*1.5;
+  if (["date","casual","takeaway"].includes(a.vibe)) s += d.places.some(p=>p.vibes.includes(a.vibe)) ? 3 : -2;
+  return s;
+}
+function decide(){
+  ranked = DISHES.filter(d=>d.meals.includes(answers.meal))
+    .map(d=>({d, s:score(d,answers)})).sort((x,y)=>y.s-x.s).map(x=>x.d);
+  current = 0;
+  tab = answers.vibe==="home" ? "cook" : "out";
+  render();
+}
+
+/* ---------- Views ---------- */
+function render(){
+  if (step<0) return renderStart();
+  if (step<activeQs().length) return renderQ();
+  renderResult();
+}
+
+function guessMeal(){ const h=new Date().getHours(); return h<11?"breakfast":h<16?"lunch":"dinner"; }
+
+function renderStart(){
+  const now = guessMeal();
+  app.innerHTML = `
+  <div class="hero fade">
+    <div class="eyebrow">✦ A tiny quiz for a very big question ✦</div>
+    <h1>What do you<br><em>want to eat?</em></h1>
+    <p>A few quick questions. At the end you get a spot around Hobart that does it, or a short shopping list to make it together.</p>
+    <div class="eyebrow" style="margin-top:6px">Which meal are we deciding?</div>
+    <div class="meals">${Object.entries(MEALS).map(([k,[e,l]])=>`
+      <button class="meal ${k===now?"now":""}" data-m="${k}"><span class="e" aria-hidden="true">${e}</span>${l}<small>${k===now?"right now":"&nbsp;"}</small></button>`).join("")}
+    </div>
+    <div class="row">
+      <button class="btn ghost dodge" id="idk">Idk, you choose</button>
+    </div>
+    <p class="small" id="idkmsg">No wrong answers. Except "you decide".</p>
+  </div>`;
+  app.querySelectorAll(".meal").forEach(b=>b.onclick=()=>{ answers={meal:b.dataset.m}; step=0; render(); });
+  const idk = document.getElementById("idk");
+  const run = (ev)=>{
+    ev.preventDefault(); dodges++;
+    const x = (Math.random()*120-60)|0, y=(Math.random()*40-20)|0;
+    idk.style.transform = `translate(${x}px,${y}px) rotate(${x/6}deg)`;
+    document.getElementById("idkmsg").textContent = ["Nice try.","Nope, still your call.","Okay okay, you win."][dodges-1];
+    if (dodges>=3){ idk.style.transform="none"; idk.textContent="Fine, pick for me 🎲"; }
+  };
+  idk.addEventListener("pointerenter", e=>{ if(e.pointerType==="mouse" && dodges<3) run(e); });
+  idk.addEventListener("click", e=>{
+    if (dodges<3) return run(e);
+    answers = {meal:now, hunger:"meal", craving:pick(["salty","cheesy","fresh","warm","spicy"]), vibe:"any", cuisine:"any"};
+    step = 99; decide();
+  });
+}
+
+function renderQ(){
+  const qs = activeQs(), Q = qs[step], n = step+1, pct = Math.round(n/qs.length*100);
+  app.innerHTML = `
+  <div class="card fade">
+    <div class="qhead"><span class="eyebrow">${MEALS[answers.meal][0]} Question ${n} of ${qs.length}</span><span class="eyebrow">${pct}% decided</span></div>
+    <div class="progress"><span style="width:${pct}%"></span></div>
+    <div class="eyebrow">Q0${n} · ${esc(Q.label)}</div>
+    <h2>${esc(Q.q(answers.meal))}</h2>
+    <p class="small">${esc(Q.sub)}</p>
+    <div class="opts">${Q.opts.map(([v,e,t,s])=>`
+      <button class="opt" data-v="${v}"><span class="e" aria-hidden="true">${e}</span><span class="t">${esc(t)}${s?`<small>${esc(s)}</small>`:""}</span></button>`).join("")}
+    </div>
+    <button class="linkbtn" id="back">← Back</button>
+  </div>`;
+  app.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
+    answers[Q.id]=b.dataset.v; step++;
+    if (step>=qs.length) decide(); else render();
+  });
+  document.getElementById("back").onclick=()=>{ step--; render(); };
+}
+
+function mapsUrl(p){ return "https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(p.name+" "+(p.addr.includes(",")?p.addr:"Hobart TAS")); }
+function sortedPlaces(d){ const v=answers.vibe; return [...d.places].sort((a,b)=>(b.vibes.includes(v)?1:0)-(a.vibes.includes(v)?1:0)); }
+function priceBar(n){
+  return `<span class="price" title="Price: ${n} of 5" aria-label="Price ${n} out of 5">
+    <span class="bars">${[1,2,3,4,5].map(i=>`<i class="${i<=n?"on":""}"></i>`).join("")}</span>
+    <span class="lbl">${PRICE_LBL[n]}</span></span>`;
+}
+
+function renderResult(){
+  const d = ranked[current];
+  const backups = ranked.filter((_,i)=>i!==current).slice(0,3);
+  const meal = MEALS[answers.meal][1];
+  const time = new Date().toLocaleTimeString([], {hour:"numeric", minute:"2-digit"});
+  const places = sortedPlaces(d);
+  app.innerHTML = `
+  <div class="docket fade">
+    <div class="dk-top"><span>${meal.toUpperCase()} ORDER</span><span>TABLE FOR 2</span><span>${esc(time)}</span></div>
+    <div class="eyebrow">Your perfect ${meal.toLowerCase()} match is…</div>
+    <div class="verdict"><span class="big" aria-hidden="true">${d.e}</span>
+      <div><div class="persona">${esc(d.persona)}</div><h2>${esc(d.name)}</h2><div class="flagline">${d.flag} ${esc(d.country)}</div></div></div>
+    <p>${esc(d.plan)}</p>
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" id="t-out" aria-selected="${tab==="out"}">📍 ${esc(answers.vibe==="home"?"Go out instead":(VIBE_TAB[answers.vibe]||"Go out"))}</button>
+      <button class="tab" role="tab" id="t-cook" aria-selected="${tab==="cook"}">🛒 ${answers.vibe==="home"?"Cook it":"Cook it instead"}</button>
+    </div>
+    <div id="panel"></div>
+  </div>
+
+  <div class="card fade">
+    <h3>Backup options (because options)</h3>
+    <div class="chips">${backups.map(b=>`<button class="chip" data-id="${b.id}">${b.flag} ${b.e} ${esc(b.name)}</button>`).join("")}</div>
+  </div>
+
+  <div class="tell fade">
+    <h3>Now go tell your boyfriend 💌</h3>
+    <button class="btn primary" id="copyplan">Copy my food match</button>
+    <p class="small">Paste it into your messages. You're in charge of the delivery.</p>
+  </div>
+
+  <div class="row" style="justify-content:center">
+    <button class="btn ghost" id="nope">That's not what I want 😩</button>
+    <button class="btn ghost" id="again">Start over ↻</button>
+  </div>
+  <p class="foot">Places picked from Hobart food guides. Price bar is a rough guide compared with the other places in this app. Check opening hours before you go.</p>`;
+
+  const panel = document.getElementById("panel");
+  if (tab==="out"){
+    panel.innerHTML = places.map((p,i)=>`
+      <div class="place">
+        <div>${i===0?'<span class="tag best">Top pick</span>':""}${p.vibes.map(v=>`<span class="tag">${{date:"date",casual:"casual",takeaway:"takeaway"}[v]}</span>`).join("")}</div>
+        <div class="phead"><div class="nm">${esc(p.name)}</div>${priceBar(p.price)}</div>
+        <div class="addr">${esc(p.addr)}</div>
+        <p>${esc(p.note)}</p>
+        <a href="${mapsUrl(p)}" target="_blank" rel="noopener">Open in Maps ↗</a>
+      </div>`).join("");
+  } else {
+    const r = d.recipe;
+    panel.innerHTML = `
+      <p class="small">Serves 2 · ${esc(r.time)}</p>
+      <h3 style="margin-top:12px">Shopping list</h3>
+      <ul class="shop">${r.buy.map(([n,q])=>`<li>${esc(n)} <span class="q">· ${esc(q)}</span></li>`).join("")}</ul>
+      <p class="small" style="margin-top:8px">From the cupboard: ${esc(r.pantry)}</p>
+      <div class="row" style="margin-top:14px"><button class="btn primary" id="copylist">Copy shopping list</button></div>
+      <h3 style="margin-top:18px">How to make it</h3>
+      <ol class="steps">${r.steps.map(s=>`<li>${esc(s)}</li>`).join("")}</ol>`;
+    document.getElementById("copylist").onclick = ()=>copy(listText(d), "Shopping list copied");
+  }
+
+  document.getElementById("t-out").onclick=()=>{ tab="out"; renderResult(); };
+  document.getElementById("t-cook").onclick=()=>{ tab="cook"; renderResult(); };
+  app.querySelectorAll(".chip").forEach(c=>c.onclick=()=>{ current = ranked.findIndex(x=>x.id===c.dataset.id); renderResult(); window.scrollTo({top:0,behavior:"smooth"}); });
+  document.getElementById("nope").onclick=()=>{ current=(current+1)%ranked.length; renderResult(); window.scrollTo({top:0,behavior:"smooth"}); };
+  document.getElementById("again").onclick=()=>{ step=-1; dodges=0; answers={}; render(); };
+  document.getElementById("copyplan").onclick=()=>{
+    const p = places[0];
+    const txt = tab==="cook"
+      ? `💌 My ${meal.toLowerCase()} match: ${d.flag} ${d.e} ${d.name}\nWe're cooking! ${listText(d)}`
+      : `💌 My ${meal.toLowerCase()} match: ${d.flag} ${d.e} ${d.name}\n${d.plan}\nTake me to ${p.name}, ${p.addr} 🥺`;
+    copy(txt, "Copied. Go send it!");
+  };
+}
+function listText(d){ return `🛒 ${d.name}\n` + d.recipe.buy.map(([n,q])=>`• ${n} (${q})`).join("\n"); }
+
+/* ---------- Helpers ---------- */
+let toastT;
+function toast(msg){ const t=document.getElementById("toast"); t.textContent=msg; t.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>t.hidden=true,2000); }
+function copy(text, ok){
+  const fallback=()=>{ const ta=document.createElement("textarea"); ta.value=text; ta.style.position="fixed"; ta.style.opacity="0"; document.body.appendChild(ta); ta.select();
+    let done=false; try{ done=document.execCommand("copy"); }catch(e){} ta.remove(); toast(done?ok:"Couldn't copy. Screenshot it instead!"); };
+  try{ navigator.clipboard.writeText(text).then(()=>toast(ok), fallback); }catch(e){ fallback(); }
+}
+
+render();
+</script>
+</body></html>
