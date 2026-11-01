@@ -98,6 +98,20 @@ ol.steps li::marker{font-family:var(--mono);color:var(--accent)}
 .fade{animation:fade .35s ease both}
 @keyframes fade{from{opacity:.001;transform:translateY(8px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion: reduce){.fade{animation:none}.dodge,.progress span{transition:none}}
+.menu{display:flex;flex-direction:column;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.good{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.good li{display:flex;gap:10px;font-weight:500}
+.good li::before{content:"✦";color:var(--accent);flex:none}
+.fits{display:flex;flex-direction:column;gap:8px}
+a.btn{text-decoration:none;display:inline-block}
+.addr{font-family:var(--mono);font-size:13px;color:var(--muted)}
+.alts{display:flex;flex-direction:column;gap:10px}
+.alt{display:flex;flex-direction:column;gap:4px;text-align:left;width:100%;background:transparent;border:1.5px solid var(--line);border-radius:14px;padding:12px 14px;color:var(--ink);font:inherit;cursor:pointer}
+.alt:hover{border-color:var(--accent);background:var(--soft)}
+.alt:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+.alt-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.alt-nm{font-family:var(--display);font-weight:800;font-size:17px;min-width:0}
+.docket h2{min-width:0}
 .foot{text-align:center;font-size:12px;color:var(--muted)}
 </style>
 </head><body>
@@ -202,7 +216,7 @@ const DISHES = [
  {id:"dumplings", meals:LD, flag:"🇨🇳", country:"China", e:"🥟", name:"Dumpling Feast", persona:"The Little Parcels Lover", cuisine:"chinese", crav:["salty","warm"], size:2,
   plan:"Crispy-bottomed potstickers and chilli oil.",
   places:[P("Pot Sticker Dumpling House","Hobart CBD and Moonah","Pan-fried and soup dumplings at budget prices.",["casual","takeaway"],1),
-          P("Danphe Nepalese and Indian Food","Hobart","🇳🇵 Nepalese momos, small and cheap.",["casual"],1)],
+          P("Danphe","Unit 2/138 Collins St, Hobart","🇳🇵 Nepalese momos, small and cheap.",["casual"],1)],
   recipe:{time:"50 min", buy:[["Pork mince","300 g"],["Dumpling wrappers","1 pack"],["Wombok","¼"],["Spring onions","1 bunch"],["Ginger","1 knob"],["Chilli oil","1 jar"]], pantry:"soy sauce, sesame oil, vinegar",
    steps:["Mix pork, chopped wombok, ginger, spring onion and soy.","Fill and fold the wrappers.","Fry 2 min, add ⅓ cup water, cover and steam 5 min.","Dip in vinegar and chilli oil."]}},
  {id:"fishchips", meals:LD, flag:"🇦🇺", country:"Australia", e:"🐟", name:"Fish & Chips on the Waterfront", persona:"The Seaside Classic", cuisine:"aussie", crav:["salty"], size:2,
@@ -416,11 +430,94 @@ const DISHES = [
    steps:["Yoghurt in bowls.","Top with granola, sliced banana and berries.","Drizzle honey."]}}
 ];
 
+/* What each place is known for, from Hobart food guides. Menus change, so treat as a guide. */
+const MENUS = {
+ "Tesoro":["Cacio e pepe tossed tableside in a pecorino wheel","Fresh pasta","Italian wine list"],
+ "Pitzi Pasta Bar":["Contemporary handmade pasta","Spritzes","One big communal table"],
+ "Da Angelo Ristorante":["Generous bowls of pasta","Large pizzas","Homemade gelato","Takeaway"],
+ "Ti Ama":["Pizzas with playful names","Disco-ball pizza oven","Bright pink dining room"],
+ "Cultura Espresso Bar & Restaurant":["Focaccia","Pizza","Pasta","Veal scaloppine","Espresso by day"],
+ "Don Camillo":["Prosciutto-wrapped beef eye fillet","Classic pasta","Old-school atmosphere"],
+ "Peppina":["Fresh pasta","Feast-style shared menu","Light-filled room in The Tasman"],
+ "Maldini":["Classic Italian","Seafood dishes","Outdoor seating on Salamanca"],
+ "Omotenashi":["16-course kaiseki degustation","Ten seats around an open kitchen"],
+ "Yamashita":["Hot pot","Japanese dishes with Tasmanian produce"],
+ "Suminato":["Sushi","Japanese tapas","Hot pots","Banquet menu"],
+ "Ranita Ramen":["Ramen with homemade wheat noodles","Weekday lunch only"],
+ "Bar Wa Izakaya":["Izakaya share plates","Ramen at lunch","Late-night cocktails"],
+ "Sush Track":["Sushi train with 100+ items","Waterfront views"],
+ "Kosaten":["Sushi on a bullet-train conveyor","Takeaway boxes"],
+ "Shokuji Japanese Restaurant":["Sashimi","Sushi","Karaage","Tempura","Big portions"],
+ "Pancho Villa":["Pork cheek tacos","Churros","Bottomless brunch"],
+ "Mother Mexico":["Lamb barbacoa tacos","Al pastor tacos"],
+ "Grinners Dive Bar":["Lots of tacos","Burritos","Nachos","Strong margaritas"],
+ "Casa de Amor":["Frozen margaritas in dozens of flavours","Mexican favourites"],
+ "Monsoon Thai Fusion":["Thai meat and seafood dishes","Vegetarian options","Historic cottage setting"],
+ "All Thai":["Thai street food","Curries"],
+ "Vanidol's South Hobart":["Chicken larb","Tom yum gai","Home-style Thai"],
+ "Ja & Jon Banh Mi":["Crispy pork banh mi","Hefty, cheap baguettes"],
+ "Cyclo Vietnamese Restaurant":["Banh mi","Beef pho","Rice paper rolls"],
+ "Pot Sticker Dumpling House":["Pan-fried dumplings","Soup dumplings","Small bites"],
+ "Danphe":["Momos","Thali plates","Curries"],
+ "Flippers Cooked Seafood":["Fish and chips","Cheap fried snacks","Eat on the dock"],
+ "Mures":["Seafood","Fish and chips downstairs","Sit-down Upper Deck"],
+ "Fish Frenzy":["Fish and chips","Harbour views"],
+ "Billy's Burgers and Bar":["The Beast burger","Boozy shakes"],
+ "The Standard":["Fried chicken burger","American-style burgers","Rooftop bar"],
+ "Boss Burger Co":["Classic fried chicken burger","Burgers"],
+ "The Whaler":["Cheeseburger","Pub meals","Historic 1829 pub"],
+ "Preachers":["Halloumi burger","Beer garden"],
+ "The Winston":["Cheeseburger served in a dog bowl","Dive-bar pub meals"],
+ "Honey Badger Dessert Cafe":["Desserts","Late sweet treats"],
+ "Daci & Daci Bakers":["Patisserie cakes","Gourmet savouries","Coffee and tea","Sparkling wine"],
+ "Room For A Pony":["All-day brunch","Wood-fired pizzas","Cocktails"],
+ "Ginger Brown":["Classic brunch staples","Pretty plates"],
+ "Machine Laundry Cafe":["Avo and halloumi on sourdough","Breakfast chicken cassoulet","Big coffees"],
+ "The Lansdowne Cafe":["Corn, jalapeño and smoked cheddar fritters","Chai porridge with roasted pears"],
+ "Pigeon Hole":["Savoury waffle soldiers with scrambled eggs","Produce from its own farm","Vegan options"],
+ "Straight Up Coffee and Food":["Vegetarian and gluten-free menu","Coffee roasted on site"],
+ "Born In Brunswick":["Bacon and egg roll","Asian-influenced brunch","Specialty coffee"],
+ "Jackman & McRoss":["Sourdough","Seasonal fruit danishes","Home-style pies"],
+ "Villino Coffee":["Freshly roasted coffee","Pastries"],
+ "Criterion St Cafe":["Three-cheese French toast with pancetta","Corn fritters with avocado"],
+ "Dandy Lane Food & Specialty Coffee":["Potato parmesan rösti","Wine-infused eggs benedict","Mac Daddy burger"],
+ "Berta":["Seasonal European-style dishes","Local organic produce"],
+ "Indian Culture":["Kashmiri lamb rogan josh","Malai kofta"],
+ "Ganges Indian by Nature":["Butter chicken","Biryani","Paneer dishes","Naan"],
+ "The Saffron Waterfront":["Tandoori plates","Curries","Big naan basket"],
+ "Chaat Corner":["Pani puri","Papdi chaat"],
+ "Lajeez Indian Restaurant":["Momos","Pani puri","Chaat","Thali","Goat curry"],
+ "Magic Curries":["Tandoor platters","Mango chicken","Lamb biryani"],
+ "Tandoor & Curry House":["Smoky chicken tikka","Lamb rogan josh","Seafood bhuna"],
+ "Annapurna":["Banquet menus","Chef's selection","Meat, seafood and veg curries"],
+ "Tasty Korea Chicken & Beer":["Korean fried chicken","Beer"],
+ "Devil's Kitchen Café":["Korean-style chicken burger","Korean-run café"],
+ "Bear With Me":["Korean fried chicken burger","Mountain views"],
+ "Kalbi Korean Restaurant":["Korean classics"],
+ "Urban Greek":["Modern Greek dishes","Share plates"],
+ "Mezethes Greek Taverna":["Greek taverna dishes","Mezze to share"],
+ "Suzie Luck's Canteen":["Bangkok chicken wings","Pan-Asian dishes","Asian-inspired cocktails"],
+ "Thai Veggie Hutt":["Build-your-own rice or noodle bowls","Vegetarian and vegan"],
+ "Kopitiam Singapore Café":["Hainanese chicken rice","Fried hokkien mee"],
+ "Sawak Café":["Nasi lemak","Chicken rice","Noodle soups"],
+ "Sonny":["Italian share plates","Wine","About 20 walk-in seats"],
+ "Ogee":["Daily-changing Italian share plates","Large wine list"],
+ "Happy Larry Deli":["Deli sandwiches"],
+ "Farzi":["Panna cotta granola","Famous French toast","Avo butter toast"],
+ "Erda":["Omurice","Honey butter brioche toast"],
+ "Lēoht":["Jalapeño cornbread with poached egg","Buckwheat banana pancakes"],
+ "Plain Jane":["Nonna's baked eggs","Okonomiyaki"],
+ "Hamlet":["Pesto omelette","Fried eggplant with green chilli yoghurt"],
+ "Westside Laundry":["Brekkie bagels"],
+ "Marla Singer":["House-made crumpets with whipped Vegemite butter","Eggs florentine"],
+ "Island Espresso":["Hash brown fries with house tomato relish"]
+};
+
 const VIBE_TAB = {date:"Book a table", casual:"Head out", takeaway:"Order in", home:"Cook it"};
 const PRICE_LBL = ["","$","$$","$$$","$$$$","$$$$$"];
 
 /* ---------- State ---------- */
-let answers = {}, step = -1, ranked = [], current = 0, tab = "out", dodges = 0;
+let answers = {}, step = -1, ranked = [], spots = [], current = 0, tab = "out", cookDish = null, dodges = 0;
 const app = document.getElementById("app");
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const pick = arr => arr[Math.floor(Math.random()*arr.length)];
@@ -437,19 +534,37 @@ function score(d, a){
   if (["date","casual","takeaway"].includes(a.vibe)) s += d.places.some(p=>p.vibes.includes(a.vibe)) ? 3 : -2;
   return s;
 }
-function decide(){
-  let recent=[]; try{ recent=JSON.parse(localStorage.getItem("fd-recent")||"[]"); }catch(e){}
-  const scored = DISHES.filter(d=>d.meals.includes(answers.meal))
-    .map(d=>({d, s:score(d,answers) + Math.random()*3 - (recent.includes(d.id)?3:0)}))
-    .sort((x,y)=>y.s-x.s);
-  // pick from the strongest few, weighted, so the same answers don't always land on one dish
-  const top = scored.slice(0,5), max = top[0].s;
+function weightedPick(list){
+  const top = list.slice(0,5), max = top[0].s;
   const w = top.map(x=>Math.exp((x.s-max)/2)); let r = Math.random()*w.reduce((a,b)=>a+b,0), i=0;
   while ((r-=w[i])>0 && i<top.length-1) i++;
-  const chosen = top[i];
-  ranked = [chosen.d, ...scored.filter(x=>x!==chosen).map(x=>x.d)];
-  try{ localStorage.setItem("fd-recent", JSON.stringify([chosen.d.id, ...recent.filter(x=>x!==chosen.d.id)].slice(0,6))); }catch(e){}
+  return top[i];
+}
+function decide(){
+  let recent=[]; try{ recent=JSON.parse(localStorage.getItem("fd-recent2")||"[]"); }catch(e){}
+  const dishScores = DISHES.filter(d=>d.meals.includes(answers.meal)).map(d=>({d, s:score(d,answers)}));
+  ranked = dishScores.sort((x,y)=>y.s-x.s).map(x=>x.d);
+  // build restaurants from every dish that fits this meal
+  const byName = {};
+  dishScores.forEach(({d,s})=>d.places.forEach(p=>{
+    const r = byName[p.name] ||= {name:p.name, addr:p.addr, price:p.price, vibes:new Set(), notes:[], dishes:[], best:-99};
+    if (!r.addr.includes(",") && p.addr.includes(",")) r.addr = p.addr;
+    p.vibes.forEach(v=>r.vibes.add(v)); if (!r.notes.includes(p.note)) r.notes.push(p.note);
+    r.dishes.push({d,s}); r.best = Math.max(r.best, s);
+  }));
+  const v = answers.vibe;
+  const scored = Object.values(byName).map(r=>{
+    r.dishes.sort((x,y)=>y.s-x.s);
+    let s = r.best + Math.random()*3 - (recent.includes(r.name)?3:0);
+    if (["date","casual","takeaway"].includes(v)) s += r.vibes.has(v) ? 3 : -3;
+    if (v==="date") s += r.price*0.4;
+    return {r, s};
+  }).sort((x,y)=>y.s-x.s);
+  const chosen = weightedPick(scored);
+  spots = [chosen.r, ...scored.filter(x=>x!==chosen).map(x=>x.r)];
+  try{ localStorage.setItem("fd-recent2", JSON.stringify([chosen.r.name, ...recent.filter(x=>x!==chosen.r.name)].slice(0,8))); }catch(e){}
   current = 0;
+  cookDish = answers.vibe==="home" ? weightedPick(dishScores).d : null;
   tab = answers.vibe==="home" ? "cook" : "out";
   render();
 }
@@ -518,37 +633,66 @@ function renderQ(){
 }
 
 function mapsUrl(p){ return "https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(p.name+" "+(p.addr.includes(",")?p.addr:"Hobart TAS")); }
-function sortedPlaces(d){ const v=answers.vibe; return [...d.places].sort((a,b)=>(b.vibes.includes(v)?1:0)-(a.vibes.includes(v)?1:0)); }
 function priceBar(n){
   return `<span class="price" title="Price: ${n} of 5" aria-label="Price ${n} out of 5">
     <span class="bars">${[1,2,3,4,5].map(i=>`<i class="${i<=n?"on":""}"></i>`).join("")}</span>
     <span class="lbl">${PRICE_LBL[n]}</span></span>`;
 }
+const VLBL = {date:"date night",casual:"casual",takeaway:"takeaway"};
+function flagsOf(r){ return [...new Set(r.dishes.map(x=>x.d.flag))].join(" "); }
+function goTop(){ window.scrollTo({top:0,behavior:"smooth"}); }
 
 function renderResult(){
-  const d = ranked[current];
-  const backups = ranked.filter((_,i)=>i!==current).slice(0,3);
   const meal = MEALS[answers.meal][1];
   const time = new Date().toLocaleTimeString([], {hour:"numeric", minute:"2-digit"});
-  const places = sortedPlaces(d);
+  const r = spots[current];
+  const d = tab==="cook" ? (cookDish || r.dishes[0].d) : null;
+  const others = spots.filter((_,i)=>i!==current).slice(0,3);
+  const menu = MENUS[r.name] || [];
+
+  const outHTML = `
+    <div class="eyebrow">Your ${meal.toLowerCase()} spot is…</div>
+    <div class="phead"><h2>${esc(r.name)}</h2>${priceBar(r.price)}</div>
+    <div class="flagline">${flagsOf(r)} · ${[...r.vibes].map(v=>VLBL[v]).join(" · ")}</div>
+    <div class="addr">${esc(r.addr)}</div>
+    <div class="menu">
+      <h3>What's on there</h3>
+      <ul class="good">${menu.map(m=>`<li>${esc(m)}</li>`).join("")}</ul>
+      <p class="small">${esc(r.notes[0])}</p>
+    </div>
+    <div class="fits"><span class="eyebrow">Matches your craving</span>
+      <div class="chips">${r.dishes.slice(0,3).map(x=>`<span class="tag">${x.d.flag} ${x.d.e} ${esc(x.d.name)}</span>`).join("")}</div></div>
+    <div class="row">
+      <a class="btn primary" href="${mapsUrl(r)}" target="_blank" rel="noopener">Open in Maps ↗</a>
+      <button class="btn ghost" id="tocook">Rather cook? 🛒</button>
+    </div>`;
+
+  const cookHTML = d ? `
+    <div class="eyebrow">Let's cook…</div>
+    <div class="verdict"><span class="big" aria-hidden="true">${d.e}</span>
+      <div><h2>${esc(d.name)}</h2><div class="flagline">${d.flag} ${esc(d.country)} · Serves 2 · ${esc(d.recipe.time)}</div></div></div>
+    <h3>Shopping list</h3>
+    <ul class="shop">${d.recipe.buy.map(([n,q])=>`<li>${esc(n)} <span class="q">· ${esc(q)}</span></li>`).join("")}</ul>
+    <p class="small">From the cupboard: ${esc(d.recipe.pantry)}</p>
+    <div class="row"><button class="btn primary" id="copylist">Copy shopping list</button>
+      <button class="btn ghost" id="toout">Rather go out? 📍</button></div>
+    <h3>How to make it</h3>
+    <ol class="steps">${d.recipe.steps.map(s=>`<li>${esc(s)}</li>`).join("")}</ol>` : "";
+
   app.innerHTML = `
   <div class="docket fade">
     <div class="dk-top"><span>${meal.toUpperCase()} ORDER</span><span>TABLE FOR 2</span><span>${esc(time)}</span></div>
-    <div class="eyebrow">Your perfect ${meal.toLowerCase()} match is…</div>
-    <div class="verdict"><span class="big" aria-hidden="true">${d.e}</span>
-      <div><div class="persona">${esc(d.persona)}</div><h2>${esc(d.name)}</h2><div class="flagline">${d.flag} ${esc(d.country)}</div></div></div>
-    <p>${esc(d.plan)}</p>
-    <div class="tabs" role="tablist">
-      <button class="tab" role="tab" id="t-out" aria-selected="${tab==="out"}">📍 ${esc(answers.vibe==="home"?"Go out instead":(VIBE_TAB[answers.vibe]||"Go out"))}</button>
-      <button class="tab" role="tab" id="t-cook" aria-selected="${tab==="cook"}">🛒 ${answers.vibe==="home"?"Cook it":"Cook it instead"}</button>
-    </div>
-    <div id="panel"></div>
+    ${tab==="cook" ? cookHTML : outHTML}
   </div>
 
-  <div class="card fade">
-    <h3>Backup options (because options)</h3>
-    <div class="chips">${backups.map(b=>`<button class="chip" data-id="${b.id}">${b.flag} ${b.e} ${esc(b.name)}</button>`).join("")}</div>
-  </div>
+  ${tab==="out" ? `<div class="card fade">
+    <h3>Other spots that fit</h3>
+    <div class="alts">${others.map((o,i)=>`
+      <button class="alt" data-n="${esc(o.name)}">
+        <span class="alt-top"><span class="alt-nm">${esc(o.name)}</span>${priceBar(o.price)}</span>
+        <span class="small">${flagsOf(o)} ${esc((MENUS[o.name]||[]).slice(0,3).join(" · "))}</span>
+      </button>`).join("")}</div>
+  </div>` : ""}
 
   <div class="tell fade">
     <h3>Now go tell your boyfriend 💌</h3>
@@ -557,44 +701,26 @@ function renderResult(){
   </div>
 
   <div class="row" style="justify-content:center">
-    <button class="btn ghost" id="nope">That's not what I want 😩</button>
+    <button class="btn ghost" id="nope">${tab==="out"?"Not feeling this place 😩":"Something else 😩"}</button>
     <button class="btn ghost" id="again">Start over ↻</button>
   </div>
-  <p class="foot">Places picked from Hobart food guides. Price bar is a rough guide compared with the other places in this app. Check opening hours before you go.</p>`;
+  <p class="foot">Places and menu highlights from Hobart food guides. Menus change, so check before you go. Price bar compares the places in this app.</p>`;
 
-  const panel = document.getElementById("panel");
-  if (tab==="out"){
-    panel.innerHTML = places.map((p,i)=>`
-      <div class="place">
-        <div>${i===0?'<span class="tag best">Top pick</span>':""}${p.vibes.map(v=>`<span class="tag">${{date:"date",casual:"casual",takeaway:"takeaway"}[v]}</span>`).join("")}</div>
-        <div class="phead"><div class="nm">${esc(p.name)}</div>${priceBar(p.price)}</div>
-        <div class="addr">${esc(p.addr)}</div>
-        <p>${esc(p.note)}</p>
-        <a href="${mapsUrl(p)}" target="_blank" rel="noopener">Open in Maps ↗</a>
-      </div>`).join("");
-  } else {
-    const r = d.recipe;
-    panel.innerHTML = `
-      <p class="small">Serves 2 · ${esc(r.time)}</p>
-      <h3 style="margin-top:12px">Shopping list</h3>
-      <ul class="shop">${r.buy.map(([n,q])=>`<li>${esc(n)} <span class="q">· ${esc(q)}</span></li>`).join("")}</ul>
-      <p class="small" style="margin-top:8px">From the cupboard: ${esc(r.pantry)}</p>
-      <div class="row" style="margin-top:14px"><button class="btn primary" id="copylist">Copy shopping list</button></div>
-      <h3 style="margin-top:18px">How to make it</h3>
-      <ol class="steps">${r.steps.map(s=>`<li>${esc(s)}</li>`).join("")}</ol>`;
-    document.getElementById("copylist").onclick = ()=>copy(listText(d), "Shopping list copied");
-  }
-
-  document.getElementById("t-out").onclick=()=>{ tab="out"; renderResult(); };
-  document.getElementById("t-cook").onclick=()=>{ tab="cook"; renderResult(); };
-  app.querySelectorAll(".chip").forEach(c=>c.onclick=()=>{ current = ranked.findIndex(x=>x.id===c.dataset.id); renderResult(); window.scrollTo({top:0,behavior:"smooth"}); });
-  document.getElementById("nope").onclick=()=>{ current=(current+1)%ranked.length; renderResult(); window.scrollTo({top:0,behavior:"smooth"}); };
-  document.getElementById("again").onclick=()=>{ step=-1; dodges=0; answers={}; render(); };
-  document.getElementById("copyplan").onclick=()=>{
-    const p = places[0];
+  const $ = id => document.getElementById(id);
+  if ($("tocook")) $("tocook").onclick=()=>{ tab="cook"; cookDish = r.dishes[0].d; renderResult(); goTop(); };
+  if ($("toout")) $("toout").onclick=()=>{ tab="out"; renderResult(); goTop(); };
+  if ($("copylist")) $("copylist").onclick=()=>copy(listText(d), "Shopping list copied");
+  app.querySelectorAll(".alt").forEach(b=>b.onclick=()=>{ current = spots.findIndex(x=>x.name===b.dataset.n); renderResult(); goTop(); });
+  $("nope").onclick=()=>{
+    if (tab==="out") current=(current+1)%spots.length;
+    else { const i = ranked.indexOf(d); cookDish = ranked[(i+1)%ranked.length]; }
+    renderResult(); goTop();
+  };
+  $("again").onclick=()=>{ step=-1; dodges=0; answers={}; render(); };
+  $("copyplan").onclick=()=>{
     const txt = tab==="cook"
       ? `💌 My ${meal.toLowerCase()} match: ${d.flag} ${d.e} ${d.name}\nWe're cooking! ${listText(d)}`
-      : `💌 My ${meal.toLowerCase()} match: ${d.flag} ${d.e} ${d.name}\n${d.plan}\nTake me to ${p.name}, ${p.addr} 🥺`;
+      : `💌 My ${meal.toLowerCase()} match: ${r.name} ${flagsOf(r)}\n${r.addr}\nI want: ${menu.slice(0,2).join(" or ")}\nTake me 🥺`;
     copy(txt, "Copied. Go send it!");
   };
 }
