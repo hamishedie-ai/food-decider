@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'none'; base-uri 'none'; form-action 'none'"><meta name="referrer" content="strict-origin-when-cross-origin"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style>
 <title>Food Decider</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -663,7 +663,7 @@ function renderResult(){
     <div class="fits"><span class="eyebrow">Matches your craving</span>
       <div class="chips">${r.dishes.slice(0,3).map(x=>`<span class="tag">${x.d.flag} ${x.d.e} ${esc(x.d.name)}</span>`).join("")}</div></div>
     <div class="row">
-      <a class="btn primary" href="${mapsUrl(r)}" target="_blank" rel="noopener">Open in Maps ↗</a>
+      <a class="btn primary" href="${mapsUrl(r)}" target="_blank" rel="noopener noreferrer">Open in Maps ↗</a>
       <button class="btn ghost" id="tocook">Rather cook? 🛒</button>
     </div>`;
 
